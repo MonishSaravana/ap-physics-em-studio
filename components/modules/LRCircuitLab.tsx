@@ -435,7 +435,7 @@ export function LRCircuitLab() {
                   </LineChart>
                 </ResponsiveContainer>
               </GraphPanel>
-              <GraphMathCard formula="I(t) = (V/R)(1-e^(-t/τ)) or I0e^(-t/τ)" derivative="dI/dt = (V/L)e^(-t/τ) or -(I0/τ)e^(-t/τ)" derivativeMeaning="Slope is how fast current changes; it is largest at switching and shrinks over time." integral="∫ I(t) dt = total charge moved through the branch" integralMeaning="Area under I-t gives charge transfer, linking transient current to net moved charge." />
+              <GraphMathCard formula={String.raw`I(t)=\frac{V}{R}\!\left(1-e^{-t/\tau}\right)\;\text{or}\;I_0e^{-t/\tau}`} derivative={String.raw`\frac{dI}{dt}=\frac{V}{L}e^{-t/\tau}\;\text{or}\;-\frac{I_0}{\tau}e^{-t/\tau}`} derivativeMeaning="Slope is how fast current changes; it is largest at switching and shrinks over time." integral={String.raw`\int I(t)\,dt=Q(t)+C`} integralMeaning="Area under I-t gives charge transfer, linking transient current to net moved charge." />
             </div>
             <div>
               <GraphPanel title="Inductor Voltage vs Time">
@@ -451,7 +451,7 @@ export function LRCircuitLab() {
                   </LineChart>
                 </ResponsiveContainer>
               </GraphPanel>
-              <GraphMathCard formula="V_L(t) = L·dI/dt" derivative="dV_L/dt controls how quickly back-emf collapses" derivativeMeaning="Large negative derivative means inductive opposition is fading quickly." integral="∫ V_L dt = L·ΔI" integralMeaning="Area under V_L-t gives change in current scaled by inductance." />
+              <GraphMathCard formula={String.raw`V_L(t)=L\frac{dI}{dt}`} derivative={String.raw`\frac{dV_L}{dt}=L\frac{d^2I}{dt^2}`} derivativeMeaning="Large negative derivative means inductive opposition is fading quickly." integral={String.raw`\int V_L\,dt=L\,\Delta I`} integralMeaning="Area under V_L-t gives change in current scaled by inductance." />
             </div>
             <div>
               <GraphPanel title="Resistor Voltage vs Time">
@@ -466,7 +466,7 @@ export function LRCircuitLab() {
                   </LineChart>
                 </ResponsiveContainer>
               </GraphPanel>
-              <GraphMathCard formula="V_R(t) = I(t)R" derivative="dV_R/dt = R·dI/dt" derivativeMeaning="This tracks how fast resistor drop responds to current buildup or decay." integral="∫ V_R dt = R∫I dt" integralMeaning="Area under V_R-t is proportional to total charge through the resistor." />
+              <GraphMathCard formula={String.raw`V_R(t)=RI(t)`} derivative={String.raw`\frac{dV_R}{dt}=R\frac{dI}{dt}`} derivativeMeaning="This tracks how fast resistor drop responds to current buildup or decay." integral={String.raw`\int V_R\,dt=R\int I\,dt`} integralMeaning="Area under V_R-t is proportional to total charge through the resistor." />
             </div>
             <div>
               <GraphPanel title="Magnetic Energy vs Time">
@@ -481,7 +481,7 @@ export function LRCircuitLab() {
                   </LineChart>
                 </ResponsiveContainer>
               </GraphPanel>
-              <GraphMathCard formula="U_L(t)=0.5LI(t)^2" derivative="dU_L/dt = L I dI/dt" derivativeMeaning="Power into magnetic storage depends on both present current and how fast it changes." integral="∫ U_L dt = cumulative magnetic-energy-time exposure" integralMeaning="Area here is energy held over time, useful for comparing storage duration." />
+              <GraphMathCard formula={String.raw`U_L(t)=\frac{1}{2}LI(t)^2`} derivative={String.raw`\frac{dU_L}{dt}=LI\frac{dI}{dt}`} derivativeMeaning="Power into magnetic storage depends on both present current and how fast it changes." integral={String.raw`\int U_L\,dt`} integralMeaning="Area here is energy held over time, useful for comparing storage duration." />
             </div>
           </div>
 

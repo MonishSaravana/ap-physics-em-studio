@@ -348,7 +348,7 @@ export function RCvsLRComparison() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
-            <GraphMathCard formula="Vc(t)=V(1-e^(-t/RC))" derivative="dVc/dt = (V/RC)e^(-t/RC)" derivativeMeaning="The slope is the charging rate, fastest initially then tapering to zero." integral="∫Vc dt = V[t + RC·e^(-t/RC)] + C" integralMeaning="Area under Vc-t tracks accumulated capacitor potential over time." />
+            <GraphMathCard formula={String.raw`V_C(t)=V\!\left(1-e^{-t/(RC)}\right)`} derivative={String.raw`\frac{dV_C}{dt}=\frac{V}{RC}e^{-t/(RC)}`} derivativeMeaning="The slope is the charging rate, fastest initially then tapering to zero." integral={String.raw`\int V_C\,dt=V\!\left(t+RC\,e^{-t/(RC)}\right)+C`} integralMeaning="Area under Vc-t tracks accumulated capacitor potential over time." />
             </div>
           )}
 
@@ -381,7 +381,7 @@ export function RCvsLRComparison() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
-            <GraphMathCard formula="Irc(t)=(V/R)e^(-t/RC)" derivative="dIrc/dt = -(V/R^2C)e^(-t/RC)" derivativeMeaning="Current decays exponentially; negative slope shows charge flow is slowing." integral="∫Irc dt = (V/R)(-RC)e^(-t/RC)+C" integralMeaning="Area under current gives total moved charge during charging." />
+            <GraphMathCard formula={String.raw`I_{RC}(t)=\frac{V}{R}e^{-t/(RC)}`} derivative={String.raw`\frac{dI_{RC}}{dt}=-\frac{V}{R^2C}e^{-t/(RC)}`} derivativeMeaning="Current decays exponentially; negative slope shows charge flow is slowing." integral={String.raw`\int I_{RC}\,dt=-VC\,e^{-t/(RC)}+C`} integralMeaning="Area under current gives total moved charge during charging." />
             </div>
           )}
 
@@ -414,7 +414,7 @@ export function RCvsLRComparison() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
-            <GraphMathCard formula="Ilr(t)=(V/R)(1-e^(-Rt/L))" derivative="dIlr/dt=(V/L)e^(-Rt/L)" derivativeMeaning="Current rise is steepest at t=0 and flattens as it approaches V/R." integral="∫Ilr dt" integralMeaning="Area gives charge passed through the LR branch over the interval." />
+            <GraphMathCard formula={String.raw`I_{LR}(t)=\frac{V}{R}\!\left(1-e^{-Rt/L}\right)`} derivative={String.raw`\frac{dI_{LR}}{dt}=\frac{V}{L}e^{-Rt/L}`} derivativeMeaning="Current rise is steepest at t=0 and flattens as it approaches V/R." integral={String.raw`\int I_{LR}\,dt=\frac{V}{R}t+\frac{VL}{R^2}e^{-Rt/L}+C`} integralMeaning="Area gives charge passed through the LR branch over the interval." />
             </div>
           )}
 
@@ -447,7 +447,7 @@ export function RCvsLRComparison() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
-            <GraphMathCard formula="Vl(t)=V e^(-Rt/L)" derivative="dVl/dt = -(RV/L)e^(-Rt/L)" derivativeMeaning="This slope quantifies how fast back-emf collapses as current builds." integral="∫Vl dt = (VL/R)(1-e^(-Rt/L))+C" integralMeaning="Area under Vl-t maps to induced voltage impulse over time." />
+            <GraphMathCard formula={String.raw`V_L(t)=Ve^{-Rt/L}`} derivative={String.raw`\frac{dV_L}{dt}=-\frac{RV}{L}e^{-Rt/L}`} derivativeMeaning="This slope quantifies how fast back-emf collapses as current builds." integral={String.raw`\int V_L\,dt=-\frac{VL}{R}e^{-Rt/L}+C`} integralMeaning="Area under Vl-t maps to induced voltage impulse over time." />
             </div>
           )}
         </div>

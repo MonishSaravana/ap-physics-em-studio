@@ -570,7 +570,7 @@ export function FaradayLenzSimulator() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
-            <GraphMathCard formula="ΦB(t)=B·Ainside(t)" derivative="dΦB/dt" derivativeMeaning="This slope tells how fast flux is changing and directly drives induction." integral="∫ΦB dt" integralMeaning="Area under flux-time is total signed flux accumulated over time." />
+            <GraphMathCard formula={String.raw`\Phi_B(t)=B\,A_{\text{inside}}(t)`} derivative={String.raw`\frac{d\Phi_B}{dt}`} derivativeMeaning="This slope tells how fast flux is changing and directly drives induction." integral={String.raw`\int \Phi_B\,dt`} integralMeaning="Area under flux-time is total signed flux accumulated over time." />
             </div>
           ) : null}
 
@@ -618,7 +618,7 @@ export function FaradayLenzSimulator() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
-            <GraphMathCard formula="ℰ(t) = -N dΦB/dt" derivative="dℰ/dt" derivativeMeaning="This indicates how sharply induced emf itself is changing." integral="∫ℰ dt = -NΔΦB" integralMeaning="Area under emf-time gives net flux-linkage change." />
+            <GraphMathCard formula={String.raw`\mathcal{E}(t)=-N\frac{d\Phi_B}{dt}`} derivative={String.raw`\frac{d\mathcal{E}}{dt}`} derivativeMeaning="This indicates how sharply induced emf itself is changing." integral={String.raw`\int \mathcal{E}\,dt=-N\Delta\Phi_B`} integralMeaning="Area under emf-time gives net flux-linkage change." />
             </div>
           ) : null}
           </div>

@@ -22,10 +22,12 @@ export function SimulationLayout({
         <p className="mt-1 text-sm text-slate-300">{description}</p>
       </div>
       <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
-        <div className="rounded-2xl border border-slate-700/60 bg-slate-950/65 p-3">{visual}</div>
+        <div className="space-y-4 rounded-2xl border border-slate-700/60 bg-slate-950/65 p-3">
+          {visual}
+          {bottom ? <div className="space-y-4">{bottom}</div> : null}
+        </div>
         <aside className="space-y-3">{sidebar}</aside>
       </div>
-      {bottom ? <div className="space-y-4">{bottom}</div> : null}
     </section>
   );
 }

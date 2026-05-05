@@ -95,6 +95,7 @@ export function LCOscillatorLab() {
   const Utotal = (state.Qmax * state.Qmax) / (2 * Math.max(1e-6, state.C));
 
   const cycleTime = period > 0 ? ((time % (2 * period)) + 2 * period) % (2 * period) : 0;
+  const phaseInPeriod = period > 0 ? ((time % period) + period) % period : 0;
 
   const phaseLabel = useMemo(() => {
     const qNorm = Math.abs(Q) / Math.max(1e-6, Math.abs(state.Qmax));
@@ -114,6 +115,47 @@ export function LCOscillatorLab() {
       ? "Capacitor discharging: current increasing"
       : "Capacitor charging with opposite polarity";
   }, [I, Q, omega, state.Qmax]);
+
+  const phaseCheckpoints = useMemo(
+    () => [
+      {
+        timeOffset: 0,
+        label: "Capacitor fully charged",
+        detail: "I = 0, discharging starts",
+      },
+      {
+        timeOffset: period / 4,
+        label: "Capacitor uncharged",
+        detail: "|I| is maximum",
+      },
+      {
+        timeOffset: period / 2,
+        label: "Capacitor fully charged (reversed)",
+        detail: "I = 0, discharging starts again",
+      },
+      {
+        timeOffset: (3 * period) / 4,
+        label: "Capacitor uncharged",
+        detail: "|I| is maximum",
+      },
+    ],
+    [period],
+  );
+
+  const nextCheckpoint = useMemo(() => {
+    if (period <= 0) {
+      return null;
+    }
+
+    const checkpoints = [0, period / 4, period / 2, (3 * period) / 4, period];
+    const next = checkpoints.find((point) => point > phaseInPeriod + 1e-9) ?? period;
+    const delta = next - phaseInPeriod;
+
+    return {
+      delta,
+      atTimeInCycle: next === period ? 0 : next,
+    };
+  }, [period, phaseInPeriod]);
 
   const graphData = useMemo(() => {
     const span = Math.max(0.4, 2 * period);
@@ -160,6 +202,37 @@ export function LCOscillatorLab() {
             <p className="rounded-full border border-cyan-400/35 bg-cyan-500/10 px-3 py-1 text-cyan-100">
               {phaseLabel}
             </p>
+          </div>
+          <div className="rounded-xl border border-slate-700/70 bg-slate-900/55 p-3">
+            <p className="text-xs text-slate-200">
+              Phase switch checkpoints (repeat every <span className="text-cyan-200">{formatNumber(period, 3)} s</span>)
+            </p>
+            {nextCheckpoint ? (
+              <p className="mt-1 text-[11px] text-slate-400">
+                Next state change in <span className="text-cyan-200">{formatNumber(nextCheckpoint.delta, 3)} s</span> at cycle time{" "}
+                <span className="text-cyan-200">{formatNumber(nextCheckpoint.atTimeInCycle, 3)} s</span>.
+              </p>
+            ) : null}
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {phaseCheckpoints.map((checkpoint) => {
+                const isActive = Math.abs(phaseInPeriod - checkpoint.timeOffset) <= Math.max(0.03, period * 0.06);
+                return (
+                  <div
+                    key={`${checkpoint.label}-${checkpoint.timeOffset}`}
+                    className={`rounded-lg border px-2.5 py-2 text-[11px] ${
+                      isActive
+                        ? "border-cyan-400/45 bg-cyan-500/10 text-cyan-100"
+                        : "border-slate-700/70 bg-slate-950/60 text-slate-300"
+                    }`}
+                  >
+                    <p className="font-medium">{checkpoint.label}</p>
+                    <p className="mt-0.5 text-[10px] text-slate-400">
+                      t = {formatNumber(checkpoint.timeOffset, 3)} s, {checkpoint.detail}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
           <label className="flex items-center gap-3 rounded-xl border border-slate-700/70 bg-slate-900/55 px-3 py-2 text-xs text-slate-200">
             <span>Animation Speed</span>
@@ -433,7 +506,7 @@ export function LCOscillatorLab() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
-            <GraphMathCard formula="Q(t)=Qmax cos(ωt)" derivative="dQ/dt = I(t) = -ωQmax sin(ωt)" derivativeMeaning="Charge slope equals current, linking this graph directly to the I-t graph." integral="∫Q dt = (Qmax/ω)sin(ωt)+C" integralMeaning="Area under Q-t captures accumulated charge-time, useful for phase comparisons." />
+            <GraphMathCard formula={String.raw`Q(t)=Q_{\max}\cos(\omega t)`} derivative={String.raw`\frac{dQ}{dt}=I(t)=-\omega Q_{\max}\sin(\omega t)`} derivativeMeaning="Charge slope equals current, linking this graph directly to the I-t graph." integral={String.raw`\int Q\,dt=\frac{Q_{\max}}{\omega}\sin(\omega t)+C`} integralMeaning="Area under Q-t captures accumulated charge-time, useful for phase comparisons." />
             </div>
 
             <div>
@@ -470,7 +543,7 @@ export function LCOscillatorLab() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
-            <GraphMathCard formula="I(t)=-ωQmax sin(ωt)" derivative="dI/dt = -(ω^2)Qmax cos(ωt)" derivativeMeaning="Current slope is tied to restoring voltage/charge in the LC system." integral="∫I dt = Q + C" integralMeaning="Area under I-t gives net moved charge and reconstructs capacitor charge change." />
+            <GraphMathCard formula={String.raw`I(t)=-\omega Q_{\max}\sin(\omega t)`} derivative={String.raw`\frac{dI}{dt}=-\omega^2 Q_{\max}\cos(\omega t)`} derivativeMeaning="Current slope is tied to restoring voltage/charge in the LC system." integral={String.raw`\int I\,dt=Q+C`} integralMeaning="Area under I-t gives net moved charge and reconstructs capacitor charge change." />
             </div>
 
             <div className="xl:col-span-2">
@@ -508,7 +581,7 @@ export function LCOscillatorLab() {
                   </LineChart>
                 </ResponsiveContainer>
               </GraphPanel>
-              <GraphMathCard formula="UC=Q^2/(2C), UL=0.5LI^2, Utotal=UC+UL" derivative="dUC/dt = (Q/C)I, dUL/dt = LI·dI/dt" derivativeMeaning="Energy slopes show exchange rate between electric and magnetic storage." integral="∫U dt" integralMeaning="Area is energy held over time; compare UC and UL residence over each cycle." />
+              <GraphMathCard formula={String.raw`U_C=\frac{Q^2}{2C},\;U_L=\frac{1}{2}LI^2,\;U_{\text{total}}=U_C+U_L`} derivative={String.raw`\frac{dU_C}{dt}=\frac{Q}{C}I,\;\frac{dU_L}{dt}=LI\frac{dI}{dt}`} derivativeMeaning="Energy slopes show exchange rate between electric and magnetic storage." integral={String.raw`\int U\,dt`} integralMeaning="Area is energy held over time; compare UC and UL residence over each cycle." />
             </div>
             </div>
             <div className="grid gap-3 xl:grid-cols-2">
