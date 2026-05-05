@@ -4,7 +4,11 @@ export type CEDAlignment = {
   cedTopics: string[];
   sciencePracticeTags: string[];
   alignmentSummary: string;
+  cedUrl?: string;
 };
+
+const apPhysicsEmCedPdfUrl =
+  "https://apcentral.collegeboard.org/media/pdf/ap-physics-c-electricity-and-magnetism-course-and-exam-description.pdf";
 
 export const cedAlignments: Record<string, CEDAlignment> = {
   magneticFlux: {
@@ -18,6 +22,7 @@ export const cedAlignments: Record<string, CEDAlignment> = {
     ],
     alignmentSummary:
       "Students manipulate magnetic field strength, loop area, angle, and turns to model how magnetic flux and flux linkage change.",
+    cedUrl: apPhysicsEmCedPdfUrl,
   },
   faradayLenz: {
     moduleName: "Faraday + Lenz Simulator",
@@ -34,6 +39,7 @@ export const cedAlignments: Record<string, CEDAlignment> = {
     ],
     alignmentSummary:
       "Students connect changing flux, induced emf, and induced current direction while comparing entering, inside, and leaving-field behavior.",
+    cedUrl: apPhysicsEmCedPdfUrl,
   },
   lenzTrainer: {
     moduleName: "Lenz's Law Direction Trainer",
@@ -50,6 +56,7 @@ export const cedAlignments: Record<string, CEDAlignment> = {
     ],
     alignmentSummary:
       "Students reason from field direction and flux change to induced field and current direction using Lenz's law and right-hand rule.",
+    cedUrl: apPhysicsEmCedPdfUrl,
   },
   inductance: {
     moduleName: "Inductance Visualizer",
@@ -63,6 +70,7 @@ export const cedAlignments: Record<string, CEDAlignment> = {
     ],
     alignmentSummary:
       "Students model induced emf, magnetic energy storage, and geometry-based changes in solenoid inductance.",
+    cedUrl: apPhysicsEmCedPdfUrl,
   },
   lrCircuit: {
     moduleName: "LR Circuit Lab",
@@ -76,6 +84,7 @@ export const cedAlignments: Record<string, CEDAlignment> = {
     ],
     alignmentSummary:
       "Students model LR transients, time constant behavior, voltage partition, and long-time steady-state behavior.",
+    cedUrl: apPhysicsEmCedPdfUrl,
   },
   lcOscillator: {
     moduleName: "LC Oscillator Lab",
@@ -89,6 +98,7 @@ export const cedAlignments: Record<string, CEDAlignment> = {
     ],
     alignmentSummary:
       "Students model charge-current phase relationships and energy transfer between electric and magnetic fields in LC oscillations.",
+    cedUrl: apPhysicsEmCedPdfUrl,
   },
   rcVsLr: {
     moduleName: "RC vs LR Comparison",
@@ -104,6 +114,7 @@ export const cedAlignments: Record<string, CEDAlignment> = {
     ],
     alignmentSummary:
       "Students compare RC and LR exponential responses and identify which quantity cannot change instantly in each model.",
+    cedUrl: apPhysicsEmCedPdfUrl,
   },
 };
 

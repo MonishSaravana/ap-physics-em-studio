@@ -22,6 +22,7 @@ import { ModelAssumptionsCard } from "@/components/simulations/ModelAssumptionsC
 import { RelationshipSummaryCard } from "@/components/simulations/RelationshipSummaryCard";
 import { SimulationLayout } from "@/components/simulations/SimulationLayout";
 import { SliderControl } from "@/components/simulations/SliderControl";
+import { TimeTransportControls } from "@/components/simulations/TimeTransportControls";
 import { ToggleControl } from "@/components/simulations/ToggleControl";
 import { Tooltip } from "@/components/simulations/Tooltip";
 import { WhatChangedCard } from "@/components/simulations/WhatChangedCard";
@@ -57,6 +58,7 @@ const defaults: LCState = {
 export function LCOscillatorLab() {
   const [state, setState] = useState<LCState>(defaults);
   const [time, setTime] = useState(0);
+  const [stepSeconds, setStepSeconds] = useState(0.1);
   const [lastChanged, setLastChanged] = useState<keyof LCState>("L");
 
   const omega = 1 / Math.sqrt(Math.max(1e-6, state.L * state.C));
@@ -174,6 +176,16 @@ export function LCOscillatorLab() {
     setLastChanged(key);
   };
 
+  const reset = () => {
+    setTime(0);
+    update("playing", true);
+  };
+
+  const stepTime = (deltaSeconds: number) => {
+    update("playing", false);
+    setTime((previous) => Math.max(0, previous + deltaSeconds));
+  };
+
   const whatChanged =
     lastChanged === "L"
       ? "Increasing L increases period T = 2π√(LC), so oscillation slows down."
@@ -247,6 +259,14 @@ export function LCOscillatorLab() {
             />
             <span className="min-w-10 text-right text-cyan-200">{formatNumber(state.animationSpeed, 2)}×</span>
           </label>
+          <TimeTransportControls
+            playing={state.playing}
+            stepSeconds={stepSeconds}
+            onTogglePlaying={() => update("playing", !state.playing)}
+            onStepSecondsChange={setStepSeconds}
+            onStep={stepTime}
+            onReset={reset}
+          />
 
           <svg viewBox="0 0 620 330" className="h-[320px] w-full rounded-xl bg-slate-950/75">
             <defs>
@@ -404,32 +424,16 @@ export function LCOscillatorLab() {
             />
             </CollapsibleSection>
             <CollapsibleSection title="Time + Playback" defaultOpen>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => update("playing", !state.playing)}
-                className="rounded-xl border border-cyan-400/40 bg-cyan-500/15 px-3 py-2 text-sm text-cyan-100"
-              >
-                {state.playing ? "Pause" : "Play"}
-              </button>
               <button
                 type="button"
                 onClick={() => {
-                  setTime(0);
-                  update("playing", true);
+                  update("playing", false);
+                  setTime(cycleTime + period / 4);
                 }}
-                className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100"
-              >
-                Reset
-              </button>
-              <button
-                type="button"
-                onClick={() => setTime(cycleTime + period / 4)}
                 className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100"
               >
                 Shift Phase
               </button>
-            </div>
             </CollapsibleSection>
 
             <CollapsibleSection title="Display Options">

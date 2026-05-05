@@ -8,8 +8,8 @@ export function RelationshipSummaryCard({
   constants,
 }: RelationshipSummaryCardProps) {
   return (
-    <section className="rounded-2xl border border-violet-400/20 bg-violet-950/20 p-4">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-violet-200">
+    <section className="sim-inline-panel border-violet-400/30 bg-violet-950/20 p-3">
+      <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-200">
         Relationship Summary
       </h3>
       <p className="mt-2 text-sm leading-relaxed text-slate-100">{summary}</p>
@@ -17,7 +17,7 @@ export function RelationshipSummaryCard({
         {constants.map((constant) => (
           <span
             key={constant.label}
-            className="rounded-full border border-violet-300/30 bg-violet-400/10 px-2.5 py-1 text-xs text-violet-100"
+            className="border border-violet-300/30 bg-violet-400/10 px-2 py-0.5 text-[11px] text-violet-100"
           >
             {constant.label}: {constant.value}
           </span>

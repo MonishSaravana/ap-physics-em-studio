@@ -22,6 +22,7 @@ import { ModelAssumptionsCard } from "@/components/simulations/ModelAssumptionsC
 import { RelationshipSummaryCard } from "@/components/simulations/RelationshipSummaryCard";
 import { SimulationLayout } from "@/components/simulations/SimulationLayout";
 import { SliderControl } from "@/components/simulations/SliderControl";
+import { TimeTransportControls } from "@/components/simulations/TimeTransportControls";
 import { ToggleControl } from "@/components/simulations/ToggleControl";
 import { Tooltip } from "@/components/simulations/Tooltip";
 import { WhatChangedCard } from "@/components/simulations/WhatChangedCard";
@@ -55,6 +56,7 @@ const defaults: RCvsLRState = {
 export function RCvsLRComparison() {
   const [state, setState] = useState<RCvsLRState>(defaults);
   const [time, setTime] = useState(0);
+  const [stepSeconds, setStepSeconds] = useState(0.1);
   const [lastChanged, setLastChanged] = useState<keyof RCvsLRState>("R");
 
   const tauRC = Math.max(1e-6, state.R * state.C);
@@ -118,6 +120,16 @@ export function RCvsLRComparison() {
     setLastChanged(key);
   };
 
+  const reset = () => {
+    setTime(0);
+    update("playing", true);
+  };
+
+  const stepTime = (deltaSeconds: number) => {
+    update("playing", false);
+    setTime((previous) => Math.min(span, Math.max(0, previous + deltaSeconds)));
+  };
+
   const whatChanged =
     lastChanged === "R"
       ? "Increasing R increases τRC = RC but decreases τLR = L/R. RC slows while LR speeds up (with smaller final LR current)."
@@ -159,6 +171,14 @@ export function RCvsLRComparison() {
             />
             <span className="min-w-10 text-right text-cyan-200">{formatNumber(state.animationSpeed, 2)}×</span>
           </label>
+          <TimeTransportControls
+            playing={state.playing}
+            stepSeconds={stepSeconds}
+            onTogglePlaying={() => update("playing", !state.playing)}
+            onStepSecondsChange={setStepSeconds}
+            onStep={stepTime}
+            onReset={reset}
+          />
 
           <svg viewBox="0 0 620 320" className="h-[310px] w-full rounded-xl bg-slate-950/75">
             <rect x="40" y="42" width="250" height="236" rx="14" fill="rgba(30,41,59,0.55)" stroke="#334155" />
@@ -290,25 +310,7 @@ export function RCvsLRComparison() {
             />
             </CollapsibleSection>
             <CollapsibleSection title="Time + Playback" defaultOpen>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => update("playing", !state.playing)}
-                className="rounded-xl border border-cyan-400/40 bg-cyan-500/15 px-3 py-2 text-sm text-cyan-100"
-              >
-                {state.playing ? "Pause" : "Play"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setTime(0);
-                  update("playing", true);
-                }}
-                className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100"
-              >
-                Reset
-              </button>
-            </div>
+              <p className="text-xs text-slate-300">Use transport controls in the simulation panel to pause, step, and reset time.</p>
             </CollapsibleSection>
             <CollapsibleSection title="Display Options">
               <ToggleControl id="compare-table" label="Show Immediate vs Long-Time Table" checked={state.showBehaviorTable} onChange={(checked) => update("showBehaviorTable", checked)} />

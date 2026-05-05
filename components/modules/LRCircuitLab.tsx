@@ -22,6 +22,7 @@ import { ModelAssumptionsCard } from "@/components/simulations/ModelAssumptionsC
 import { RelationshipSummaryCard } from "@/components/simulations/RelationshipSummaryCard";
 import { SimulationLayout } from "@/components/simulations/SimulationLayout";
 import { SliderControl } from "@/components/simulations/SliderControl";
+import { TimeTransportControls } from "@/components/simulations/TimeTransportControls";
 import { ToggleControl } from "@/components/simulations/ToggleControl";
 import { Tooltip } from "@/components/simulations/Tooltip";
 import { WhatChangedCard } from "@/components/simulations/WhatChangedCard";
@@ -64,6 +65,7 @@ const defaults: LRState = {
 export function LRCircuitLab() {
   const [state, setState] = useState<LRState>(defaults);
   const [time, setTime] = useState(0);
+  const [stepSeconds, setStepSeconds] = useState(0.1);
   const [lastChanged, setLastChanged] = useState<keyof LRState>("L");
 
   const tau = state.L / Math.max(0.001, state.R);
@@ -194,6 +196,11 @@ export function LRCircuitLab() {
     setState((previous) => ({ ...previous, playing: true }));
   };
 
+  const stepTime = (deltaSeconds: number) => {
+    update("playing", false);
+    setTime((previous) => Math.min(maxTime, Math.max(0, previous + deltaSeconds)));
+  };
+
   const whatChanged =
     lastChanged === "L"
       ? "Increasing L increases τ = L/R, so current changes more slowly."
@@ -239,6 +246,14 @@ export function LRCircuitLab() {
             />
             <span className="min-w-10 text-right text-cyan-200">{formatNumber(state.animationSpeed, 2)}×</span>
           </label>
+          <TimeTransportControls
+            playing={state.playing}
+            stepSeconds={stepSeconds}
+            onTogglePlaying={() => update("playing", !state.playing)}
+            onStepSecondsChange={setStepSeconds}
+            onStep={stepTime}
+            onReset={reset}
+          />
 
           <svg viewBox="0 0 620 330" className="h-[320px] w-full rounded-xl bg-slate-950/75">
             <defs>
@@ -401,11 +416,7 @@ export function LRCircuitLab() {
                   <option value="open">Open</option>
                 </select>
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                <button type="button" onClick={() => update("playing", !state.playing)} className="rounded-xl border border-cyan-400/40 bg-cyan-500/15 px-3 py-2 text-sm text-cyan-100">{state.playing ? "Pause" : "Play"}</button>
-                <button type="button" onClick={reset} className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100">Reset</button>
-                <button type="button" onClick={() => { setTime(maxTime); update("playing", false); }} className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100">Jump Long t</button>
-              </div>
+              <button type="button" onClick={() => { setTime(maxTime); update("playing", false); }} className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100">Jump Long t</button>
             </CollapsibleSection>
             <CollapsibleSection title="Display Options">
               <div className="grid gap-2">

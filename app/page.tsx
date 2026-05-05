@@ -15,69 +15,111 @@ export default function Home() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#030712] text-slate-100">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-32 top-[-9rem] h-80 w-80 rounded-full bg-cyan-500/15 blur-3xl" />
-        <div className="absolute right-[-9rem] top-44 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.08),transparent_35%),radial-gradient(circle_at_80%_12%,rgba(59,130,246,0.08),transparent_38%),linear-gradient(rgba(2,6,23,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(2,6,23,0.15)_1px,transparent_1px)] bg-[size:100%_100%,100%_100%,32px_32px,32px_32px]" />
-      </div>
+    <div className="instrument-shell min-h-screen overflow-x-hidden text-slate-100">
+      <header className="instrument-header">
+        <div className="mx-auto flex w-full max-w-[1480px] flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-6 lg:px-8">
+          <p className="text-sm uppercase tracking-[0.2em] text-cyan-200">E&amp;M Studio</p>
+          <nav className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+            <a
+              href="https://github.com/MonishSaravana"
+              target="_blank"
+              rel="noreferrer"
+              className="instrument-link"
+            >
+              Monish Saravana
+            </a>
+            <a
+              href="https://monishsaravana.com"
+              target="_blank"
+              rel="noreferrer"
+              className="instrument-link"
+            >
+              monishsaravana.com
+            </a>
+            <a
+              href="https://github.com/MonishSaravana/ap-physics-em-studio"
+              target="_blank"
+              rel="noreferrer"
+              className="instrument-link"
+            >
+              Source Code
+            </a>
+          </nav>
+        </div>
+      </header>
 
-      <main className="relative mx-auto w-full max-w-[1360px] px-4 pb-16 pt-10 md:px-6 lg:px-8">
-        <section className="rounded-3xl border border-slate-700/70 bg-slate-900/45 p-6 shadow-2xl shadow-cyan-950/25 md:p-8">
-          <div className="space-y-4">
-            <p className="inline-flex rounded-full border border-cyan-300/30 bg-cyan-500/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-cyan-100">
-              Interactive Simulation Studio
-            </p>
-            <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl">e&amp;m studio</h1>
-            <p className="max-w-3xl text-lg text-cyan-100/90">
-              model, manipulate, and visualize ap physics c: electricity &amp; magnetism.
-            </p>
-            <p className="max-w-3xl text-sm leading-relaxed text-slate-300 md:text-base">
-              change inputs, watch the fields and circuits respond, and connect formulas to graphs and physical
-              behavior.
-            </p>
-            <p className="max-w-3xl text-sm text-slate-400">
-              interactive ap physics c: e&amp;m simulations for flux, induction, inductors, and circuits
-            </p>
+      <main className="relative mx-auto w-full max-w-[1480px] px-4 pb-16 pt-8 md:px-6 lg:px-8">
+        <section className="instrument-hero">
+          <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl">e&amp;m studio</h1>
+          <p className="mt-2 text-sm uppercase tracking-[0.22em] text-cyan-200">Monish Saravana</p>
+          <p className="mt-5 max-w-4xl text-base leading-relaxed text-slate-200 md:text-lg">
+            Model, manipulate, and visualize AP Physics C: Electricity and Magnetism. Adjust inputs, watch fields and
+            circuits respond, and connect formulas directly to graphs and physical behavior.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {["CED Unit 11", "CED Unit 12", "CED Unit 13", "Electromagnetic Induction", "LR and LC Circuits"].map(
+              (pill) => (
+                <span key={pill} className="ced-pill">
+                  {pill}
+                </span>
+              ),
+            )}
           </div>
         </section>
 
-        <section className="mt-8">
-          <h2 className="mb-4 text-xl font-semibold text-white">Simulation Modules</h2>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {moduleCards.map((module) => {
-              const active = module.id === activeModule;
-              return (
-                <button
-                  key={module.id}
-                  type="button"
-                  onClick={() => launchModule(module.id)}
-                  className={`group rounded-2xl border p-4 text-left transition ${
-                    active
-                      ? "border-cyan-300/60 bg-cyan-500/15"
-                      : "border-slate-700/70 bg-slate-900/50 hover:border-cyan-400/40 hover:bg-slate-900/80"
-                  }`}
-                >
-                  <h3 className="text-base font-semibold text-white">{module.title}</h3>
-                  <p className="mt-1 text-sm text-slate-300">{module.summary}</p>
-                  <span className="mt-3 inline-flex text-xs uppercase tracking-wide text-cyan-200">
-                    {active ? "Open" : "Launch Lab"}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+        <section className="mt-6">
+          <details open className="instrument-module-dropdown">
+            <summary className="instrument-module-summary">Simulation Modules</summary>
+            <div className="mt-3 space-y-2">
+              {moduleCards.map((module) => {
+                const active = module.id === activeModule;
+                return (
+                  <button
+                    key={module.id}
+                    type="button"
+                    onClick={() => launchModule(module.id)}
+                    className={`instrument-module-item w-full text-left ${active ? "is-active" : ""}`}
+                  >
+                    <span className="block text-base font-semibold text-white">{module.title}</span>
+                    <span className="mt-1 block text-sm text-slate-300">{module.summary}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </details>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
-          aligned to ap physics c: e&amp;m ced units 11-13, especially electromagnetic induction, inductance, lr
-          circuits, and lc circuits.
+        <section className="mt-5 border-l-2 border-emerald-300/60 pl-4 text-sm text-emerald-100/90">
+          Aligned to AP Physics C: E&amp;M CED Units 11–13, especially electromagnetic induction, inductance, LR
+          circuits, and LC circuits.
         </section>
 
-        <section ref={moduleRef} className="mt-8">
+        <section ref={moduleRef} className="mt-6">
           <ModuleRenderer moduleId={activeModule} />
         </section>
       </main>
+
+      <footer className="instrument-footer">
+        <div className="mx-auto flex w-full max-w-[1480px] flex-wrap items-center justify-between gap-3 px-4 py-3 text-xs text-slate-300 md:px-6 lg:px-8 sm:text-sm">
+          <p>E&amp;M Studio by Monish Saravana</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <a href="https://github.com/MonishSaravana" target="_blank" rel="noreferrer" className="instrument-link">
+              Monish Saravana
+            </a>
+            <a href="https://monishsaravana.com" target="_blank" rel="noreferrer" className="instrument-link">
+              monishsaravana.com
+            </a>
+            <a
+              href="https://github.com/MonishSaravana/ap-physics-em-studio"
+              target="_blank"
+              rel="noreferrer"
+              className="instrument-link"
+            >
+              Source Code
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -29,6 +29,7 @@ type InductanceState = {
 };
 
 const mu0 = 4 * Math.PI * 1e-7;
+const didtEpsilon = 1e-6;
 
 const defaults: InductanceState = {
   L: 1.8,
@@ -57,6 +58,7 @@ export function InductanceVisualizer() {
   // Induced emf from inductor law: inductor opposes current changes.
   const inducedEmf = -effectiveL * state.dIdt;
   const storedEnergy = 0.5 * effectiveL * state.I * state.I;
+  const hasInducedDirection = Math.abs(state.dIdt) > didtEpsilon;
 
   const update = (key: keyof InductanceState, value: number | boolean) => {
     setState((previous) => ({ ...previous, [key]: value }));
@@ -97,7 +99,7 @@ export function InductanceVisualizer() {
               Inductance model <Tooltip text="Inductance measures how strongly a conductor opposes changes in current." />
             </p>
             <p className="rounded-full border border-violet-400/35 bg-violet-500/10 px-3 py-1 text-violet-100">
-              {state.dIdt >= 0 ? "Opposes increase" : "Opposes decrease"}
+              {!hasInducedDirection ? "No change in current" : state.dIdt > 0 ? "Opposes increase" : "Opposes decrease"}
             </p>
           </div>
 
@@ -162,7 +164,7 @@ export function InductanceVisualizer() {
               I = {formatNumber(state.I, 2)} A
             </text>
 
-            {state.showInducedDirection ? (
+            {state.showInducedDirection && hasInducedDirection ? (
               <>
                 <line
                   x1="510"
@@ -177,6 +179,10 @@ export function InductanceVisualizer() {
                   Induced emf direction opposes dI/dt
                 </text>
               </>
+            ) : state.showInducedDirection ? (
+              <text x="386" y="205" fill="#cbd5e1" fontSize={13}>
+                dI/dt = 0, so induced emf is zero
+              </text>
             ) : null}
 
             <text x="34" y="33" fill="#cbd5e1" fontSize={13}>

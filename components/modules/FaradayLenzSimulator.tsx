@@ -22,6 +22,7 @@ import { ModelAssumptionsCard } from "@/components/simulations/ModelAssumptionsC
 import { RelationshipSummaryCard } from "@/components/simulations/RelationshipSummaryCard";
 import { SimulationLayout } from "@/components/simulations/SimulationLayout";
 import { SliderControl } from "@/components/simulations/SliderControl";
+import { TimeTransportControls } from "@/components/simulations/TimeTransportControls";
 import { ToggleControl } from "@/components/simulations/ToggleControl";
 import { Tooltip } from "@/components/simulations/Tooltip";
 import { WhatChangedCard } from "@/components/simulations/WhatChangedCard";
@@ -74,48 +75,115 @@ const defaults: FaradayState = {
   showEmfGraph: true,
 };
 
-const emptyDerived: DerivedState = {
-  overlap: 0,
-  areaInside: 0,
-  flux: 0,
-  dFluxDt: 0,
-  emf: 0,
-  currentDirection: "none",
-  reason: "No changing flux, so no induced current.",
-  status: "outside field → no flux",
-  inducedFieldDirection: "none",
-};
-
 const graphWindowSeconds = 14;
 const epsilon = 1e-5;
+
+function getPositionForTime(
+  timeSeconds: number,
+  velocity: number,
+  loopWidth: number,
+  fieldRegionWidth: number,
+) {
+  const t = Math.max(0, timeSeconds);
+  const minCenter = -loopWidth / 2;
+  const maxCenter = fieldRegionWidth + loopWidth / 2;
+  const period = Math.max(1e-6, fieldRegionWidth + 2 * loopWidth);
+
+  if (velocity >= 0) {
+    const traveled = ((velocity * t) % period + period) % period;
+    return minCenter + traveled;
+  }
+
+  const traveled = (((-velocity) * t) % period + period) % period;
+  return maxCenter - traveled;
+}
 
 export function FaradayLenzSimulator() {
   const [state, setState] = useState<FaradayState>(defaults);
   const [time, setTime] = useState(0);
+  const [stepSeconds, setStepSeconds] = useState(0.1);
   const [position, setPosition] = useState(-defaults.loopWidth / 2);
-  const [derived, setDerived] = useState<DerivedState>(emptyDerived);
-  const [history, setHistory] = useState<Array<{ time: number; flux: number; emf: number }>>([
-    { time: 0, flux: 0, emf: 0 },
-  ]);
+  const [historyStartTime, setHistoryStartTime] = useState(0);
   const [lastChanged, setLastChanged] = useState<keyof FaradayState>("v");
 
   const lastFrameRef = useRef<number | null>(null);
-  const previousFluxRef = useRef(0);
-  const previousTimeRef = useRef(0);
 
   const fieldSign = state.fieldDirection === "out" ? 1 : -1;
 
-  const computeFlux = useMemo(
-    () => (centerPosition: number) => {
-      const left = centerPosition - state.loopWidth / 2;
-      const right = centerPosition + state.loopWidth / 2;
-      const overlap = Math.max(0, Math.min(right, state.fieldRegionWidth) - Math.max(left, 0));
-      const areaInside = overlap * state.loopHeight;
-      const flux = fieldSign * state.B * areaInside;
-      return { overlap, areaInside, flux };
-    },
-    [fieldSign, state.B, state.fieldRegionWidth, state.loopHeight, state.loopWidth]
-  );
+  const fluxState = useMemo(() => {
+    const left = position - state.loopWidth / 2;
+    const right = position + state.loopWidth / 2;
+    const overlap = Math.max(0, Math.min(right, state.fieldRegionWidth) - Math.max(left, 0));
+    const areaInside = overlap * state.loopHeight;
+    const flux = fieldSign * state.B * areaInside;
+
+    // Piecewise overlap-rate model for a rigid loop moving at constant velocity through a uniform field strip.
+    let dOverlapDx = 0;
+    const entering =
+      left < epsilon && right > epsilon && right < state.fieldRegionWidth - epsilon;
+    const leaving =
+      left > epsilon &&
+      left < state.fieldRegionWidth - epsilon &&
+      right > state.fieldRegionWidth - epsilon;
+
+    if (entering) {
+      dOverlapDx = 1;
+    } else if (leaving) {
+      dOverlapDx = -1;
+    }
+
+    const dOverlapDt = dOverlapDx * state.v;
+    const dFluxDt = fieldSign * state.B * state.loopHeight * dOverlapDt;
+    return { overlap, areaInside, flux, dFluxDt };
+  }, [
+    fieldSign,
+    position,
+    state.B,
+    state.fieldRegionWidth,
+    state.loopHeight,
+    state.loopWidth,
+    state.v,
+  ]);
+
+  const derived = useMemo<DerivedState>(() => {
+    const emf = -state.N * fluxState.dFluxDt;
+    const changingFlux = Math.abs(fluxState.dFluxDt) > epsilon;
+    const outside = fluxState.overlap <= epsilon;
+
+    const status = outside
+      ? "outside field → no flux"
+      : changingFlux
+      ? "flux changing → induced emf"
+      : "flux constant → no induced emf";
+
+    let inducedFieldDirection: Direction | "none" = "none";
+    if (changingFlux) {
+      inducedFieldDirection = fluxState.dFluxDt > 0 ? "into" : "out";
+    }
+
+    let currentDirection: DerivedState["currentDirection"] = "none";
+    if (changingFlux) {
+      currentDirection = inducedFieldDirection === "out" ? "counterclockwise" : "clockwise";
+    }
+
+    const reason = changingFlux
+      ? `Induced field ${inducedFieldDirection}-of-page opposes the ${
+          fluxState.dFluxDt > 0 ? "increase" : "decrease"
+        } in signed flux.`
+      : "No changing magnetic flux through the loop, so induced emf is zero.";
+
+    return {
+      overlap: fluxState.overlap,
+      areaInside: fluxState.areaInside,
+      flux: fluxState.flux,
+      dFluxDt: fluxState.dFluxDt,
+      emf,
+      currentDirection,
+      reason,
+      status,
+      inducedFieldDirection,
+    };
+  }, [fluxState, state.N]);
 
   useEffect(() => {
     if (!state.playing) {
@@ -169,65 +237,83 @@ export function FaradayLenzSimulator() {
     state.v,
   ]);
 
-  useEffect(() => {
-    const { overlap, areaInside, flux } = computeFlux(position);
-    const dt = Math.max(time - previousTimeRef.current, 1e-4);
-    const dFluxDt = (flux - previousFluxRef.current) / dt;
-    const emf = -state.N * dFluxDt;
+  const historyData = useMemo(() => {
+    const start = Math.max(0, historyStartTime, time - graphWindowSeconds);
+    const span = Math.max(0, time - start);
+    const sampleCount = span <= epsilon ? 1 : 180;
 
-    previousFluxRef.current = flux;
-    previousTimeRef.current = time;
+    return Array.from({ length: sampleCount }, (_, index) => {
+      const sampleTime =
+        sampleCount === 1 ? time : start + (index / (sampleCount - 1)) * span;
+      const samplePosition =
+        Math.abs(state.v) <= epsilon
+          ? position
+          : getPositionForTime(
+              sampleTime,
+              state.v,
+              state.loopWidth,
+              state.fieldRegionWidth,
+            );
+      const left = samplePosition - state.loopWidth / 2;
+      const right = samplePosition + state.loopWidth / 2;
+      const overlap = Math.max(
+        0,
+        Math.min(right, state.fieldRegionWidth) - Math.max(left, 0),
+      );
+      const areaInside = overlap * state.loopHeight;
+      const flux = fieldSign * state.B * areaInside;
 
-    const changingFlux = Math.abs(dFluxDt) > epsilon;
-    const outside = overlap <= epsilon;
+      let dOverlapDx = 0;
+      const entering =
+        left < epsilon && right > epsilon && right < state.fieldRegionWidth - epsilon;
+      const leaving =
+        left > epsilon &&
+        left < state.fieldRegionWidth - epsilon &&
+        right > state.fieldRegionWidth - epsilon;
 
-    const status = outside
-      ? "outside field → no flux"
-      : changingFlux
-      ? "flux changing → induced emf"
-      : "flux constant → no induced emf";
+      if (entering) {
+        dOverlapDx = 1;
+      } else if (leaving) {
+        dOverlapDx = -1;
+      }
 
-    let inducedFieldDirection: Direction | "none" = "none";
-    if (changingFlux) {
-      inducedFieldDirection = dFluxDt > 0 ? "into" : "out";
-    }
-
-    let currentDirection: DerivedState["currentDirection"] = "none";
-    if (changingFlux) {
-      currentDirection = inducedFieldDirection === "out" ? "counterclockwise" : "clockwise";
-    }
-
-    const reason = changingFlux
-      ? `Induced field ${inducedFieldDirection}-of-page opposes the ${dFluxDt > 0 ? "increase" : "decrease"} in signed flux.`
-      : "No changing magnetic flux through the loop, so induced emf is zero.";
-
-    setDerived({
-      overlap,
-      areaInside,
-      flux,
-      dFluxDt,
-      emf,
-      currentDirection,
-      reason,
-      status,
-      inducedFieldDirection,
+      const dFluxDt = fieldSign * state.B * state.loopHeight * dOverlapDx * state.v;
+      return { time: sampleTime, flux, emf: -state.N * dFluxDt };
     });
-
-    setHistory((previous) => {
-      const next = [...previous, { time, flux, emf }];
-      return next.filter((point) => time - point.time <= graphWindowSeconds);
-    });
-  }, [computeFlux, position, state.N, time]);
+  }, [
+    fieldSign,
+    historyStartTime,
+    position,
+    state.B,
+    state.N,
+    state.fieldRegionWidth,
+    state.loopHeight,
+    state.loopWidth,
+    state.v,
+    time,
+  ]);
 
   const reset = () => {
-    const resetPosition = state.v >= 0 ? -state.loopWidth / 2 : state.fieldRegionWidth + state.loopWidth / 2;
+    const resetPosition = getPositionForTime(
+      0,
+      state.v,
+      state.loopWidth,
+      state.fieldRegionWidth,
+    );
+    update("playing", true);
     setTime(0);
     setPosition(resetPosition);
-    setHistory([{ time: 0, flux: 0, emf: 0 }]);
-    setDerived(emptyDerived);
-    previousFluxRef.current = 0;
-    previousTimeRef.current = 0;
+    setHistoryStartTime(0);
     lastFrameRef.current = null;
+  };
+
+  const stepTime = (deltaSeconds: number) => {
+    update("playing", false);
+    setTime((previous) => {
+      const next = Math.max(0, previous + deltaSeconds);
+      setPosition(getPositionForTime(next, state.v, state.loopWidth, state.fieldRegionWidth));
+      return next;
+    });
   };
 
   const update = (key: keyof FaradayState, value: number | boolean | Direction) => {
@@ -241,14 +327,15 @@ export function FaradayLenzSimulator() {
         key === "fieldDirection" ||
         key === "v"
       ) {
-        const resetPosition =
-          next.v >= 0 ? -next.loopWidth / 2 : next.fieldRegionWidth + next.loopWidth / 2;
+        const resetPosition = getPositionForTime(
+          0,
+          next.v,
+          next.loopWidth,
+          next.fieldRegionWidth,
+        );
         setTime(0);
         setPosition(resetPosition);
-        setHistory([{ time: 0, flux: 0, emf: 0 }]);
-        setDerived(emptyDerived);
-        previousFluxRef.current = 0;
-        previousTimeRef.current = 0;
+        setHistoryStartTime(0);
         lastFrameRef.current = null;
       }
 
@@ -317,6 +404,14 @@ export function FaradayLenzSimulator() {
             />
             <span className="min-w-10 text-right text-cyan-200">{formatNumber(state.animationSpeed, 2)}×</span>
           </label>
+          <TimeTransportControls
+            playing={state.playing}
+            stepSeconds={stepSeconds}
+            onTogglePlaying={() => update("playing", !state.playing)}
+            onStepSecondsChange={setStepSeconds}
+            onStep={stepTime}
+            onReset={reset}
+          />
 
           <svg viewBox="0 0 600 330" className="h-[320px] w-full rounded-xl bg-slate-950/75">
             <defs>
@@ -485,25 +580,11 @@ export function FaradayLenzSimulator() {
               </label>
             </CollapsibleSection>
             <CollapsibleSection title="Time + Playback" defaultOpen>
-              <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => update("playing", !state.playing)}
-                className="rounded-xl border border-cyan-400/40 bg-cyan-500/15 px-3 py-2 text-sm text-cyan-100"
-              >
-                {state.playing ? "Pause" : "Play"}
-              </button>
-              <button
-                type="button"
-                onClick={reset}
-                className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100"
-              >
-                Reset
-              </button>
+              <div className="grid gap-2">
               <button
                 type="button"
                 onClick={() => {
-                  setHistory([{ time, flux: derived.flux, emf: derived.emf }]);
+                  setHistoryStartTime(time);
                 }}
                 className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100"
               >
@@ -530,7 +611,7 @@ export function FaradayLenzSimulator() {
             <div>
             <GraphPanel title="Magnetic Flux vs Time">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={history} margin={{ top: 8, right: 12, left: 10, bottom: 10 }}>
+                <LineChart data={historyData} margin={{ top: 8, right: 12, left: 10, bottom: 10 }}>
                   <CartesianGrid stroke="#334155" strokeDasharray="4 4" />
                   <XAxis
                     dataKey="time"
@@ -578,7 +659,7 @@ export function FaradayLenzSimulator() {
             <div>
             <GraphPanel title="Induced emf vs Time">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={history} margin={{ top: 8, right: 12, left: 10, bottom: 10 }}>
+                <LineChart data={historyData} margin={{ top: 8, right: 12, left: 10, bottom: 10 }}>
                   <CartesianGrid stroke="#334155" strokeDasharray="4 4" />
                   <XAxis
                     dataKey="time"

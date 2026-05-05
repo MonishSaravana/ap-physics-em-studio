@@ -20,11 +20,9 @@ export function FormulaCard({
   physicalMeaning,
 }: FormulaCardProps) {
   return (
-    <section className="rounded-2xl border border-cyan-400/20 bg-slate-900/70 p-4 shadow-lg shadow-cyan-950/25">
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-cyan-200">
-        {title}
-      </h3>
-      <div className="rounded-xl border border-slate-700/70 bg-slate-950/70 p-3 text-slate-100">
+    <details className="math-drawer p-3">
+      <summary className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-200">{title}</summary>
+      <div className="mt-2 border border-slate-700/70 bg-slate-950/70 p-2.5 text-slate-100">
         <BlockMath math={equation} />
       </div>
       <ul className="mt-3 space-y-1.5 text-xs text-slate-300">
@@ -35,8 +33,8 @@ export function FormulaCard({
         ))}
       </ul>
       <p className="mt-3 text-xs leading-relaxed text-slate-300">
-        <span className="font-semibold text-slate-100">Physical meaning:</span> {physicalMeaning}
+        <span className="font-semibold text-slate-100">Physical Meaning:</span> {physicalMeaning}
       </p>
-    </section>
+    </details>
   );
 }
