@@ -12,9 +12,11 @@ import {
   YAxis,
 } from "recharts";
 import { CEDAlignmentCard } from "@/components/simulations/CEDAlignmentCard";
+import { CollapsibleSection } from "@/components/simulations/CollapsibleSection";
 import { CommonMistakeCard } from "@/components/simulations/CommonMistakeCard";
 import { FormulaCard } from "@/components/simulations/FormulaCard";
 import { GraphPanel } from "@/components/simulations/GraphPanel";
+import { GraphMathCard } from "@/components/simulations/GraphMathCard";
 import { LiveValueCard } from "@/components/simulations/LiveValueCard";
 import { ModelAssumptionsCard } from "@/components/simulations/ModelAssumptionsCard";
 import { RelationshipSummaryCard } from "@/components/simulations/RelationshipSummaryCard";
@@ -144,6 +146,19 @@ export function RCvsLRComparison() {
               Mode: {state.mode}
             </p>
           </div>
+          <label className="flex items-center gap-3 rounded-xl border border-slate-700/70 bg-slate-900/55 px-3 py-2 text-xs text-slate-200">
+            <span>Animation Speed</span>
+            <input
+              type="range"
+              min={0.05}
+              max={4}
+              step={0.05}
+              value={state.animationSpeed}
+              onChange={(event) => update("animationSpeed", Number(event.target.value))}
+              className="w-40 accent-cyan-400"
+            />
+            <span className="min-w-10 text-right text-cyan-200">{formatNumber(state.animationSpeed, 2)}×</span>
+          </label>
 
           <svg viewBox="0 0 620 320" className="h-[310px] w-full rounded-xl bg-slate-950/75">
             <rect x="40" y="42" width="250" height="236" rx="14" fill="rgba(30,41,59,0.55)" stroke="#334155" />
@@ -217,6 +232,7 @@ export function RCvsLRComparison() {
           </div>
 
           <div className="space-y-3 rounded-2xl border border-slate-700/70 bg-slate-900/60 p-3">
+            <CollapsibleSection title="Model Selection" defaultOpen>
             <label className="flex items-center justify-between gap-2 rounded-xl border border-slate-700/70 bg-slate-900/55 px-3 py-2 text-sm text-slate-200">
               <span>Mode</span>
               <select
@@ -229,7 +245,9 @@ export function RCvsLRComparison() {
                 <option value="side-by-side">Side-by-Side</option>
               </select>
             </label>
+            </CollapsibleSection>
 
+            <CollapsibleSection title="Circuit Variables" defaultOpen>
             <SliderControl
               id="compare-v"
               label="Battery Voltage"
@@ -270,24 +288,8 @@ export function RCvsLRComparison() {
               unit="H"
               onChange={(value) => update("L", value)}
             />
-            <SliderControl
-              id="compare-speed"
-              label="Animation Speed"
-              value={state.animationSpeed}
-              min={0.2}
-              max={4}
-              step={0.1}
-              unit="×"
-              onChange={(value) => update("animationSpeed", value)}
-            />
-
-            <ToggleControl
-              id="compare-table"
-              label="Show Immediate vs Long-Time Table"
-              checked={state.showBehaviorTable}
-              onChange={(checked) => update("showBehaviorTable", checked)}
-            />
-
+            </CollapsibleSection>
+            <CollapsibleSection title="Time + Playback" defaultOpen>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -307,46 +309,18 @@ export function RCvsLRComparison() {
                 Reset
               </button>
             </div>
+            </CollapsibleSection>
+            <CollapsibleSection title="Display Options">
+              <ToggleControl id="compare-table" label="Show Immediate vs Long-Time Table" checked={state.showBehaviorTable} onChange={(checked) => update("showBehaviorTable", checked)} />
+            </CollapsibleSection>
           </div>
-
-          <FormulaCard
-            title="RC Charging"
-            equation={String.raw`\tau_{RC}=RC,\quad V_C(t)=V\left(1-e^{-t/RC}\right)`}
-            definitions={[
-              { symbol: String.raw`\tau_{RC}`, meaning: "RC time constant", unit: "s" },
-              { symbol: String.raw`V_C`, meaning: "capacitor voltage", unit: "V" },
-            ]}
-            physicalMeaning="RC charging slows down when either resistance or capacitance increases."
-          />
-
-          <FormulaCard
-            title="LR Rise"
-            equation={String.raw`\tau_{LR}=\frac{L}{R},\quad I(t)=\frac{V}{R}\left(1-e^{-Rt/L}\right)`}
-            definitions={[
-              { symbol: String.raw`\tau_{LR}`, meaning: "LR time constant", unit: "s" },
-              { symbol: String.raw`I`, meaning: "inductor current", unit: "A" },
-            ]}
-            physicalMeaning="LR current rises more slowly when L increases, but increasing R speeds transient approach while lowering final current."
-          />
-
-          <WhatChangedCard text={whatChanged} />
-          <RelationshipSummaryCard
-            summary={relationshipSummary}
-            constants={[
-              { label: "R", value: `${formatNumber(state.R, 2)} Ω` },
-              { label: "C", value: `${formatNumber(state.C, 3)} F` },
-              { label: "L", value: `${formatNumber(state.L, 2)} H` },
-              { label: "τRC", value: `${formatNumber(tauRC, 3)} s` },
-              { label: "τLR", value: `${formatNumber(tauLR, 3)} s` },
-            ]}
-          />
-          <CommonMistakeCard text="Common mistake: RC and LR circuits both have exponential behavior, but their time constants respond differently to resistance." />
-          <ModelAssumptionsCard assumptions={defaultModelAssumptions} />
         </div>
       }
       bottom={
+        <div className="space-y-4">
         <div className="grid gap-4 xl:grid-cols-2">
           {(state.mode === "rc" || state.mode === "side-by-side") && (
+            <div>
             <GraphPanel title="RC Capacitor Voltage vs Time">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
@@ -374,9 +348,12 @@ export function RCvsLRComparison() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
+            <GraphMathCard formula="Vc(t)=V(1-e^(-t/RC))" derivative="dVc/dt = (V/RC)e^(-t/RC)" derivativeMeaning="The slope is the charging rate, fastest initially then tapering to zero." integral="∫Vc dt = V[t + RC·e^(-t/RC)] + C" integralMeaning="Area under Vc-t tracks accumulated capacitor potential over time." />
+            </div>
           )}
 
           {(state.mode === "rc" || state.mode === "side-by-side") && (
+            <div>
             <GraphPanel title="RC Current vs Time">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
@@ -404,9 +381,12 @@ export function RCvsLRComparison() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
+            <GraphMathCard formula="Irc(t)=(V/R)e^(-t/RC)" derivative="dIrc/dt = -(V/R^2C)e^(-t/RC)" derivativeMeaning="Current decays exponentially; negative slope shows charge flow is slowing." integral="∫Irc dt = (V/R)(-RC)e^(-t/RC)+C" integralMeaning="Area under current gives total moved charge during charging." />
+            </div>
           )}
 
           {(state.mode === "lr" || state.mode === "side-by-side") && (
+            <div>
             <GraphPanel title="LR Current vs Time">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
@@ -434,9 +414,12 @@ export function RCvsLRComparison() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
+            <GraphMathCard formula="Ilr(t)=(V/R)(1-e^(-Rt/L))" derivative="dIlr/dt=(V/L)e^(-Rt/L)" derivativeMeaning="Current rise is steepest at t=0 and flattens as it approaches V/R." integral="∫Ilr dt" integralMeaning="Area gives charge passed through the LR branch over the interval." />
+            </div>
           )}
 
           {(state.mode === "lr" || state.mode === "side-by-side") && (
+            <div>
             <GraphPanel title="LR Inductor Voltage vs Time">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
@@ -464,7 +447,18 @@ export function RCvsLRComparison() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
+            <GraphMathCard formula="Vl(t)=V e^(-Rt/L)" derivative="dVl/dt = -(RV/L)e^(-Rt/L)" derivativeMeaning="This slope quantifies how fast back-emf collapses as current builds." integral="∫Vl dt = (VL/R)(1-e^(-Rt/L))+C" integralMeaning="Area under Vl-t maps to induced voltage impulse over time." />
+            </div>
           )}
+        </div>
+        <div className="grid gap-3 xl:grid-cols-2">
+          <FormulaCard title="RC Charging" equation={String.raw`\tau_{RC}=RC,\quad V_C(t)=V\left(1-e^{-t/RC}\right)`} definitions={[{ symbol: String.raw`\tau_{RC}`, meaning: "RC time constant", unit: "s" }, { symbol: String.raw`V_C`, meaning: "capacitor voltage", unit: "V" }]} physicalMeaning="RC charging slows down when either resistance or capacitance increases." />
+          <FormulaCard title="LR Rise" equation={String.raw`\tau_{LR}=\frac{L}{R},\quad I(t)=\frac{V}{R}\left(1-e^{-Rt/L}\right)`} definitions={[{ symbol: String.raw`\tau_{LR}`, meaning: "LR time constant", unit: "s" }, { symbol: String.raw`I`, meaning: "inductor current", unit: "A" }]} physicalMeaning="LR current rises more slowly when L increases, but increasing R speeds transient approach while lowering final current." />
+          <WhatChangedCard text={whatChanged} />
+          <RelationshipSummaryCard summary={relationshipSummary} constants={[{ label: "R", value: `${formatNumber(state.R, 2)} Ω` }, { label: "C", value: `${formatNumber(state.C, 3)} F` }, { label: "L", value: `${formatNumber(state.L, 2)} H` }, { label: "τRC", value: `${formatNumber(tauRC, 3)} s` }, { label: "τLR", value: `${formatNumber(tauLR, 3)} s` }]} />
+          <CommonMistakeCard text="Common mistake: RC and LR circuits both have exponential behavior, but their time constants respond differently to resistance." />
+          <ModelAssumptionsCard assumptions={defaultModelAssumptions} />
+        </div>
         </div>
       }
     />

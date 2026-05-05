@@ -12,9 +12,11 @@ import {
   YAxis,
 } from "recharts";
 import { CEDAlignmentCard } from "@/components/simulations/CEDAlignmentCard";
+import { CollapsibleSection } from "@/components/simulations/CollapsibleSection";
 import { CommonMistakeCard } from "@/components/simulations/CommonMistakeCard";
 import { FormulaCard } from "@/components/simulations/FormulaCard";
 import { GraphPanel } from "@/components/simulations/GraphPanel";
+import { GraphMathCard } from "@/components/simulations/GraphMathCard";
 import { LiveValueCard } from "@/components/simulations/LiveValueCard";
 import { ModelAssumptionsCard } from "@/components/simulations/ModelAssumptionsCard";
 import { RelationshipSummaryCard } from "@/components/simulations/RelationshipSummaryCard";
@@ -224,6 +226,19 @@ export function LRCircuitLab() {
               {phaseLabel}
             </p>
           </div>
+          <label className="flex items-center gap-3 rounded-xl border border-slate-700/70 bg-slate-900/55 px-3 py-2 text-xs text-slate-200">
+            <span>Animation Speed</span>
+            <input
+              type="range"
+              min={0.05}
+              max={4}
+              step={0.05}
+              value={state.animationSpeed}
+              onChange={(event) => update("animationSpeed", Number(event.target.value))}
+              className="w-40 accent-cyan-400"
+            />
+            <span className="min-w-10 text-right text-cyan-200">{formatNumber(state.animationSpeed, 2)}×</span>
+          </label>
 
           <svg viewBox="0 0 620 330" className="h-[320px] w-full rounded-xl bg-slate-950/75">
             <defs>
@@ -365,140 +380,113 @@ export function LRCircuitLab() {
           </div>
 
           <div className="space-y-3 rounded-2xl border border-slate-700/70 bg-slate-900/60 p-3">
-            <SliderControl
-              id="lr-voltage"
-              label="Battery Voltage V"
-              value={state.V}
-              min={0}
-              max={24}
-              step={0.1}
-              unit="V"
-              onChange={(value) => update("V", value)}
-            />
-            <SliderControl
-              id="lr-resistance"
-              label="Resistance R"
-              value={state.R}
-              min={1}
-              max={100}
-              step={0.5}
-              unit="Ω"
-              onChange={(value) => update("R", value)}
-            />
-            <SliderControl
-              id="lr-inductance"
-              label="Inductance L"
-              value={state.L}
-              min={0.1}
-              max={10}
-              step={0.05}
-              unit="H"
-              onChange={(value) => update("L", value)}
-            />
-            <SliderControl
-              id="lr-i0"
-              label="Initial Current I0 (decay mode)"
-              value={state.I0}
-              min={0}
-              max={5}
-              step={0.05}
-              unit="A"
-              onChange={(value) => update("I0", value)}
-            />
-            <SliderControl
-              id="lr-speed"
-              label="Animation Speed"
-              value={state.animationSpeed}
-              min={0.2}
-              max={4}
-              step={0.1}
-              unit="×"
-              onChange={(value) => update("animationSpeed", value)}
-            />
+            <CollapsibleSection title="Circuit Variables" defaultOpen>
+              <SliderControl id="lr-voltage" label="Battery Voltage V" value={state.V} min={0} max={24} step={0.1} unit="V" onChange={(value) => update("V", value)} />
+              <SliderControl id="lr-resistance" label="Resistance R" value={state.R} min={1} max={100} step={0.5} unit="Ω" onChange={(value) => update("R", value)} />
+              <SliderControl id="lr-inductance" label="Inductance L" value={state.L} min={0.1} max={10} step={0.05} unit="H" onChange={(value) => update("L", value)} />
+              <SliderControl id="lr-i0" label="Initial Current I0 (decay mode)" value={state.I0} min={0} max={5} step={0.05} unit="A" onChange={(value) => update("I0", value)} />
+            </CollapsibleSection>
+            <CollapsibleSection title="Time + Playback" defaultOpen>
+              <label className="flex items-center justify-between gap-2 rounded-xl border border-slate-700/70 bg-slate-900/55 px-3 py-2 text-sm text-slate-200">
+                <span>Mode</span>
+                <select value={state.mode} onChange={(event) => { update("mode", event.target.value as LRMode); setTime(0); }} className="rounded-lg border border-slate-600 bg-slate-950 px-2 py-1 text-xs">
+                  <option value="rise">Current Rise</option>
+                  <option value="decay">Current Decay</option>
+                </select>
+              </label>
+              <label className="flex items-center justify-between gap-2 rounded-xl border border-slate-700/70 bg-slate-900/55 px-3 py-2 text-sm text-slate-200">
+                <span>Switch State</span>
+                <select value={state.switchState} onChange={(event) => update("switchState", event.target.value as SwitchState)} className="rounded-lg border border-slate-600 bg-slate-950 px-2 py-1 text-xs">
+                  <option value="closed">Closed</option>
+                  <option value="open">Open</option>
+                </select>
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <button type="button" onClick={() => update("playing", !state.playing)} className="rounded-xl border border-cyan-400/40 bg-cyan-500/15 px-3 py-2 text-sm text-cyan-100">{state.playing ? "Pause" : "Play"}</button>
+                <button type="button" onClick={reset} className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100">Reset</button>
+                <button type="button" onClick={() => { setTime(maxTime); update("playing", false); }} className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100">Jump Long t</button>
+              </div>
+            </CollapsibleSection>
+            <CollapsibleSection title="Display Options">
+              <div className="grid gap-2">
+                <ToggleControl id="lr-particles" label="Show Current Particles" checked={state.showCurrentParticles} onChange={(checked) => update("showCurrentParticles", checked)} />
+                <ToggleControl id="lr-mfield" label="Show Inductor Magnetic Field" checked={state.showMagField} onChange={(checked) => update("showMagField", checked)} />
+                <ToggleControl id="lr-labels" label="Show Initial/Long-Time Labels" checked={state.showLabels} onChange={(checked) => update("showLabels", checked)} />
+                <ToggleControl id="lr-voltage-split" label="Show Voltage Split" checked={state.showVoltageSplit} onChange={(checked) => update("showVoltageSplit", checked)} />
+              </div>
+            </CollapsibleSection>
+          </div>
 
-            <label className="flex items-center justify-between gap-2 rounded-xl border border-slate-700/70 bg-slate-900/55 px-3 py-2 text-sm text-slate-200">
-              <span>Mode</span>
-              <select
-                value={state.mode}
-                onChange={(event) => {
-                  update("mode", event.target.value as LRMode);
-                  setTime(0);
-                }}
-                className="rounded-lg border border-slate-600 bg-slate-950 px-2 py-1 text-xs"
-              >
-                <option value="rise">Current Rise</option>
-                <option value="decay">Current Decay</option>
-              </select>
-            </label>
-
-            <label className="flex items-center justify-between gap-2 rounded-xl border border-slate-700/70 bg-slate-900/55 px-3 py-2 text-sm text-slate-200">
-              <span>Switch State</span>
-              <select
-                value={state.switchState}
-                onChange={(event) => update("switchState", event.target.value as SwitchState)}
-                className="rounded-lg border border-slate-600 bg-slate-950 px-2 py-1 text-xs"
-              >
-                <option value="closed">Closed</option>
-                <option value="open">Open</option>
-              </select>
-            </label>
-
-            <div className="grid gap-2">
-              <ToggleControl
-                id="lr-particles"
-                label="Show Current Particles"
-                checked={state.showCurrentParticles}
-                onChange={(checked) => update("showCurrentParticles", checked)}
-              />
-              <ToggleControl
-                id="lr-mfield"
-                label="Show Inductor Magnetic Field"
-                checked={state.showMagField}
-                onChange={(checked) => update("showMagField", checked)}
-              />
-              <ToggleControl
-                id="lr-labels"
-                label="Show Initial/Long-Time Labels"
-                checked={state.showLabels}
-                onChange={(checked) => update("showLabels", checked)}
-              />
-              <ToggleControl
-                id="lr-voltage-split"
-                label="Show Voltage Split"
-                checked={state.showVoltageSplit}
-                onChange={(checked) => update("showVoltageSplit", checked)}
-              />
+        </div>
+      }
+      bottom={
+        <div className="space-y-4">
+          <div className="grid gap-4 xl:grid-cols-2">
+            <div>
+              <GraphPanel title="Current vs Time">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={graphData} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
+                    <CartesianGrid stroke="#334155" strokeDasharray="4 4" />
+                    <XAxis dataKey="t" type="number" domain={[0, maxTime]} stroke="#94a3b8" tick={{ fill: "#cbd5e1", fontSize: 12 }} label={{ value: "t (s)", fill: "#e2e8f0", position: "insideBottom", offset: -2 }} />
+                    <YAxis stroke="#94a3b8" tick={{ fill: "#cbd5e1", fontSize: 12 }} label={{ value: "I (A)", fill: "#e2e8f0", angle: -90, position: "insideLeft" }} />
+                    <RechartsTooltip formatter={(value) => [`${formatNumber(Number(value), 3)} A`, "Current"]} labelFormatter={(label) => `t = ${formatNumber(Number(label), 2)} s`} contentStyle={{ background: "#020617", border: "1px solid #334155", borderRadius: 10, color: "#e2e8f0" }} />
+                    <ReferenceLine x={time} stroke="#e2e8f0" strokeDasharray="4 4" />
+                    <Line dataKey="I" type="monotone" stroke="#22d3ee" dot={false} strokeWidth={2.3} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </GraphPanel>
+              <GraphMathCard formula="I(t) = (V/R)(1-e^(-t/τ)) or I0e^(-t/τ)" derivative="dI/dt = (V/L)e^(-t/τ) or -(I0/τ)e^(-t/τ)" derivativeMeaning="Slope is how fast current changes; it is largest at switching and shrinks over time." integral="∫ I(t) dt = total charge moved through the branch" integralMeaning="Area under I-t gives charge transfer, linking transient current to net moved charge." />
             </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => update("playing", !state.playing)}
-                className="rounded-xl border border-cyan-400/40 bg-cyan-500/15 px-3 py-2 text-sm text-cyan-100"
-              >
-                {state.playing ? "Pause" : "Play"}
-              </button>
-              <button
-                type="button"
-                onClick={reset}
-                className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100"
-              >
-                Reset
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setTime(maxTime);
-                  update("playing", false);
-                }}
-                className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100"
-              >
-                Jump Long t
-              </button>
+            <div>
+              <GraphPanel title="Inductor Voltage vs Time">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={graphData} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
+                    <CartesianGrid stroke="#334155" strokeDasharray="4 4" />
+                    <XAxis dataKey="t" type="number" domain={[0, maxTime]} stroke="#94a3b8" tick={{ fill: "#cbd5e1", fontSize: 12 }} label={{ value: "t (s)", fill: "#e2e8f0", position: "insideBottom", offset: -2 }} />
+                    <YAxis stroke="#94a3b8" tick={{ fill: "#cbd5e1", fontSize: 12 }} label={{ value: "V_L (V)", fill: "#e2e8f0", angle: -90, position: "insideLeft" }} />
+                    <RechartsTooltip formatter={(value) => [`${formatNumber(Number(value), 3)} V`, "Inductor Voltage"]} labelFormatter={(label) => `t = ${formatNumber(Number(label), 2)} s`} contentStyle={{ background: "#020617", border: "1px solid #334155", borderRadius: 10, color: "#e2e8f0" }} />
+                    <ReferenceLine y={0} stroke="#64748b" strokeDasharray="4 4" />
+                    <ReferenceLine x={time} stroke="#e2e8f0" strokeDasharray="4 4" />
+                    <Line dataKey="VL" type="monotone" stroke="#93c5fd" dot={false} strokeWidth={2.3} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </GraphPanel>
+              <GraphMathCard formula="V_L(t) = L·dI/dt" derivative="dV_L/dt controls how quickly back-emf collapses" derivativeMeaning="Large negative derivative means inductive opposition is fading quickly." integral="∫ V_L dt = L·ΔI" integralMeaning="Area under V_L-t gives change in current scaled by inductance." />
+            </div>
+            <div>
+              <GraphPanel title="Resistor Voltage vs Time">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={graphData} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
+                    <CartesianGrid stroke="#334155" strokeDasharray="4 4" />
+                    <XAxis dataKey="t" type="number" domain={[0, maxTime]} stroke="#94a3b8" tick={{ fill: "#cbd5e1", fontSize: 12 }} label={{ value: "t (s)", fill: "#e2e8f0", position: "insideBottom", offset: -2 }} />
+                    <YAxis stroke="#94a3b8" tick={{ fill: "#cbd5e1", fontSize: 12 }} label={{ value: "V_R (V)", fill: "#e2e8f0", angle: -90, position: "insideLeft" }} />
+                    <RechartsTooltip formatter={(value) => [`${formatNumber(Number(value), 3)} V`, "Resistor Voltage"]} labelFormatter={(label) => `t = ${formatNumber(Number(label), 2)} s`} contentStyle={{ background: "#020617", border: "1px solid #334155", borderRadius: 10, color: "#e2e8f0" }} />
+                    <ReferenceLine x={time} stroke="#e2e8f0" strokeDasharray="4 4" />
+                    <Line dataKey="VR" type="monotone" stroke="#fb7185" dot={false} strokeWidth={2.3} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </GraphPanel>
+              <GraphMathCard formula="V_R(t) = I(t)R" derivative="dV_R/dt = R·dI/dt" derivativeMeaning="This tracks how fast resistor drop responds to current buildup or decay." integral="∫ V_R dt = R∫I dt" integralMeaning="Area under V_R-t is proportional to total charge through the resistor." />
+            </div>
+            <div>
+              <GraphPanel title="Magnetic Energy vs Time">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={graphData} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
+                    <CartesianGrid stroke="#334155" strokeDasharray="4 4" />
+                    <XAxis dataKey="t" type="number" domain={[0, maxTime]} stroke="#94a3b8" tick={{ fill: "#cbd5e1", fontSize: 12 }} label={{ value: "t (s)", fill: "#e2e8f0", position: "insideBottom", offset: -2 }} />
+                    <YAxis stroke="#94a3b8" tick={{ fill: "#cbd5e1", fontSize: 12 }} label={{ value: "U_L (J)", fill: "#e2e8f0", angle: -90, position: "insideLeft" }} />
+                    <RechartsTooltip formatter={(value) => [`${formatNumber(Number(value), 3)} J`, "Magnetic Energy"]} labelFormatter={(label) => `t = ${formatNumber(Number(label), 2)} s`} contentStyle={{ background: "#020617", border: "1px solid #334155", borderRadius: 10, color: "#e2e8f0" }} />
+                    <ReferenceLine x={time} stroke="#e2e8f0" strokeDasharray="4 4" />
+                    <Line dataKey="U" type="monotone" stroke="#34d399" dot={false} strokeWidth={2.3} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </GraphPanel>
+              <GraphMathCard formula="U_L(t)=0.5LI(t)^2" derivative="dU_L/dt = L I dI/dt" derivativeMeaning="Power into magnetic storage depends on both present current and how fast it changes." integral="∫ U_L dt = cumulative magnetic-energy-time exposure" integralMeaning="Area here is energy held over time, useful for comparing storage duration." />
             </div>
           </div>
 
-          <FormulaCard
+          <div className="grid gap-3 xl:grid-cols-2">
+            <FormulaCard
             title="Current Rise"
             equation={String.raw`I(t)=\frac{V}{R}\left(1-e^{-Rt/L}\right)`}
             definitions={[
@@ -542,142 +530,7 @@ export function LRCircuitLab() {
           />
           <CommonMistakeCard text="Common mistake: larger resistance does not always mean slower LR response. In an LR circuit, τ = L/R, so increasing R decreases the time constant while also decreasing final current." />
           <ModelAssumptionsCard assumptions={defaultModelAssumptions} />
-        </div>
-      }
-      bottom={
-        <div className="grid gap-4 xl:grid-cols-2">
-          <GraphPanel title="Current vs Time">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={graphData} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
-                <CartesianGrid stroke="#334155" strokeDasharray="4 4" />
-                <XAxis
-                  dataKey="t"
-                  type="number"
-                  domain={[0, maxTime]}
-                  stroke="#94a3b8"
-                  tick={{ fill: "#cbd5e1", fontSize: 12 }}
-                  label={{ value: "t (s)", fill: "#e2e8f0", position: "insideBottom", offset: -2 }}
-                />
-                <YAxis
-                  stroke="#94a3b8"
-                  tick={{ fill: "#cbd5e1", fontSize: 12 }}
-                  label={{ value: "I (A)", fill: "#e2e8f0", angle: -90, position: "insideLeft" }}
-                />
-                <RechartsTooltip
-                  formatter={(value) => [`${formatNumber(Number(value), 3)} A`, "Current"]}
-                  labelFormatter={(label) => `t = ${formatNumber(Number(label), 2)} s`}
-                  contentStyle={{
-                    background: "#020617",
-                    border: "1px solid #334155",
-                    borderRadius: 10,
-                    color: "#e2e8f0",
-                  }}
-                />
-                <ReferenceLine x={time} stroke="#e2e8f0" strokeDasharray="4 4" />
-                <Line dataKey="I" type="monotone" stroke="#22d3ee" dot={false} strokeWidth={2.3} />
-              </LineChart>
-            </ResponsiveContainer>
-          </GraphPanel>
-
-          <GraphPanel title="Inductor Voltage vs Time">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={graphData} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
-                <CartesianGrid stroke="#334155" strokeDasharray="4 4" />
-                <XAxis
-                  dataKey="t"
-                  type="number"
-                  domain={[0, maxTime]}
-                  stroke="#94a3b8"
-                  tick={{ fill: "#cbd5e1", fontSize: 12 }}
-                  label={{ value: "t (s)", fill: "#e2e8f0", position: "insideBottom", offset: -2 }}
-                />
-                <YAxis
-                  stroke="#94a3b8"
-                  tick={{ fill: "#cbd5e1", fontSize: 12 }}
-                  label={{ value: "V_L (V)", fill: "#e2e8f0", angle: -90, position: "insideLeft" }}
-                />
-                <RechartsTooltip
-                  formatter={(value) => [`${formatNumber(Number(value), 3)} V`, "Inductor Voltage"]}
-                  labelFormatter={(label) => `t = ${formatNumber(Number(label), 2)} s`}
-                  contentStyle={{
-                    background: "#020617",
-                    border: "1px solid #334155",
-                    borderRadius: 10,
-                    color: "#e2e8f0",
-                  }}
-                />
-                <ReferenceLine y={0} stroke="#64748b" strokeDasharray="4 4" />
-                <ReferenceLine x={time} stroke="#e2e8f0" strokeDasharray="4 4" />
-                <Line dataKey="VL" type="monotone" stroke="#93c5fd" dot={false} strokeWidth={2.3} />
-              </LineChart>
-            </ResponsiveContainer>
-          </GraphPanel>
-
-          <GraphPanel title="Resistor Voltage vs Time">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={graphData} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
-                <CartesianGrid stroke="#334155" strokeDasharray="4 4" />
-                <XAxis
-                  dataKey="t"
-                  type="number"
-                  domain={[0, maxTime]}
-                  stroke="#94a3b8"
-                  tick={{ fill: "#cbd5e1", fontSize: 12 }}
-                  label={{ value: "t (s)", fill: "#e2e8f0", position: "insideBottom", offset: -2 }}
-                />
-                <YAxis
-                  stroke="#94a3b8"
-                  tick={{ fill: "#cbd5e1", fontSize: 12 }}
-                  label={{ value: "V_R (V)", fill: "#e2e8f0", angle: -90, position: "insideLeft" }}
-                />
-                <RechartsTooltip
-                  formatter={(value) => [`${formatNumber(Number(value), 3)} V`, "Resistor Voltage"]}
-                  labelFormatter={(label) => `t = ${formatNumber(Number(label), 2)} s`}
-                  contentStyle={{
-                    background: "#020617",
-                    border: "1px solid #334155",
-                    borderRadius: 10,
-                    color: "#e2e8f0",
-                  }}
-                />
-                <ReferenceLine x={time} stroke="#e2e8f0" strokeDasharray="4 4" />
-                <Line dataKey="VR" type="monotone" stroke="#fb7185" dot={false} strokeWidth={2.3} />
-              </LineChart>
-            </ResponsiveContainer>
-          </GraphPanel>
-
-          <GraphPanel title="Magnetic Energy vs Time">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={graphData} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
-                <CartesianGrid stroke="#334155" strokeDasharray="4 4" />
-                <XAxis
-                  dataKey="t"
-                  type="number"
-                  domain={[0, maxTime]}
-                  stroke="#94a3b8"
-                  tick={{ fill: "#cbd5e1", fontSize: 12 }}
-                  label={{ value: "t (s)", fill: "#e2e8f0", position: "insideBottom", offset: -2 }}
-                />
-                <YAxis
-                  stroke="#94a3b8"
-                  tick={{ fill: "#cbd5e1", fontSize: 12 }}
-                  label={{ value: "U_L (J)", fill: "#e2e8f0", angle: -90, position: "insideLeft" }}
-                />
-                <RechartsTooltip
-                  formatter={(value) => [`${formatNumber(Number(value), 3)} J`, "Magnetic Energy"]}
-                  labelFormatter={(label) => `t = ${formatNumber(Number(label), 2)} s`}
-                  contentStyle={{
-                    background: "#020617",
-                    border: "1px solid #334155",
-                    borderRadius: 10,
-                    color: "#e2e8f0",
-                  }}
-                />
-                <ReferenceLine x={time} stroke="#e2e8f0" strokeDasharray="4 4" />
-                <Line dataKey="U" type="monotone" stroke="#34d399" dot={false} strokeWidth={2.3} />
-              </LineChart>
-            </ResponsiveContainer>
-          </GraphPanel>
+          </div>
         </div>
       }
     />

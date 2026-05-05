@@ -12,9 +12,11 @@ import {
   YAxis,
 } from "recharts";
 import { CEDAlignmentCard } from "@/components/simulations/CEDAlignmentCard";
+import { CollapsibleSection } from "@/components/simulations/CollapsibleSection";
 import { CommonMistakeCard } from "@/components/simulations/CommonMistakeCard";
 import { FormulaCard } from "@/components/simulations/FormulaCard";
 import { GraphPanel } from "@/components/simulations/GraphPanel";
+import { GraphMathCard } from "@/components/simulations/GraphMathCard";
 import { LiveValueCard } from "@/components/simulations/LiveValueCard";
 import { ModelAssumptionsCard } from "@/components/simulations/ModelAssumptionsCard";
 import { RelationshipSummaryCard } from "@/components/simulations/RelationshipSummaryCard";
@@ -159,6 +161,19 @@ export function LCOscillatorLab() {
               {phaseLabel}
             </p>
           </div>
+          <label className="flex items-center gap-3 rounded-xl border border-slate-700/70 bg-slate-900/55 px-3 py-2 text-xs text-slate-200">
+            <span>Animation Speed</span>
+            <input
+              type="range"
+              min={0.05}
+              max={4}
+              step={0.05}
+              value={state.animationSpeed}
+              onChange={(event) => update("animationSpeed", Number(event.target.value))}
+              className="w-40 accent-cyan-400"
+            />
+            <span className="min-w-10 text-right text-cyan-200">{formatNumber(state.animationSpeed, 2)}×</span>
+          </label>
 
           <svg viewBox="0 0 620 330" className="h-[320px] w-full rounded-xl bg-slate-950/75">
             <defs>
@@ -283,6 +298,7 @@ export function LCOscillatorLab() {
           </div>
 
           <div className="space-y-3 rounded-2xl border border-slate-700/70 bg-slate-900/60 p-3">
+            <CollapsibleSection title="LC Variables" defaultOpen>
             <SliderControl
               id="lc-c"
               label="Capacitance C"
@@ -313,17 +329,37 @@ export function LCOscillatorLab() {
               unit="C"
               onChange={(value) => update("Qmax", value)}
             />
-            <SliderControl
-              id="lc-speed"
-              label="Animation Speed"
-              value={state.animationSpeed}
-              min={0.2}
-              max={4}
-              step={0.1}
-              unit="×"
-              onChange={(value) => update("animationSpeed", value)}
-            />
+            </CollapsibleSection>
+            <CollapsibleSection title="Time + Playback" defaultOpen>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => update("playing", !state.playing)}
+                className="rounded-xl border border-cyan-400/40 bg-cyan-500/15 px-3 py-2 text-sm text-cyan-100"
+              >
+                {state.playing ? "Pause" : "Play"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTime(0);
+                  update("playing", true);
+                }}
+                className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100"
+              >
+                Reset
+              </button>
+              <button
+                type="button"
+                onClick={() => setTime(cycleTime + period / 4)}
+                className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100"
+              >
+                Shift Phase
+              </button>
+            </div>
+            </CollapsibleSection>
 
+            <CollapsibleSection title="Display Options">
             <div className="grid gap-2">
               <ToggleControl
                 id="lc-energy-bars"
@@ -356,82 +392,15 @@ export function LCOscillatorLab() {
                 onChange={(checked) => update("showGraphs", checked)}
               />
             </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => update("playing", !state.playing)}
-                className="rounded-xl border border-cyan-400/40 bg-cyan-500/15 px-3 py-2 text-sm text-cyan-100"
-              >
-                {state.playing ? "Pause" : "Play"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setTime(0);
-                  update("playing", true);
-                }}
-                className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100"
-              >
-                Reset
-              </button>
-              <button
-                type="button"
-                onClick={() => setTime(cycleTime + period / 4)}
-                className="rounded-xl border border-slate-600 bg-slate-800/60 px-3 py-2 text-sm text-slate-100"
-              >
-                Shift Phase
-              </button>
-            </div>
+            </CollapsibleSection>
           </div>
-
-          <FormulaCard
-            title="LC Frequency"
-            equation={String.raw`\omega = \frac{1}{\sqrt{LC}},\quad T = 2\pi\sqrt{LC}`}
-            definitions={[
-              { symbol: String.raw`\omega`, meaning: "angular frequency", unit: "rad/s" },
-              { symbol: String.raw`T`, meaning: "period", unit: "s" },
-            ]}
-            physicalMeaning="Larger L or C gives a slower oscillation and longer period."
-          />
-
-          <FormulaCard
-            title="Charge and Current"
-            equation={String.raw`Q(t)=Q_{\max}\cos(\omega t),\quad I(t)=-\omega Q_{\max}\sin(\omega t)`}
-            definitions={[
-              { symbol: String.raw`Q_{\max}`, meaning: "initial charge amplitude", unit: "C" },
-              { symbol: String.raw`I`, meaning: "circuit current", unit: "A" },
-            ]}
-            physicalMeaning="Charge and current oscillate sinusoidally and are out of phase by 90°."
-          />
-
-          <FormulaCard
-            title="Energy Exchange"
-            equation={String.raw`U_C=\frac{Q^2}{2C},\quad U_L=\frac{1}{2}LI^2`}
-            definitions={[
-              { symbol: String.raw`U_C`, meaning: "capacitor electric energy", unit: "J" },
-              { symbol: String.raw`U_L`, meaning: "inductor magnetic energy", unit: "J" },
-            ]}
-            physicalMeaning="Energy transfers between capacitor and inductor while ideal total energy remains constant."
-          />
-
-          <WhatChangedCard text={whatChanged} />
-          <RelationshipSummaryCard
-            summary={relationshipSummary}
-            constants={[
-              { label: "L", value: `${formatNumber(state.L, 2)} H` },
-              { label: "C", value: `${formatNumber(state.C, 3)} F` },
-              { label: "ω", value: `${formatNumber(omega, 3)} rad/s` },
-              { label: "T", value: `${formatNumber(period, 3)} s` },
-            ]}
-          />
-          <CommonMistakeCard text="Common mistake: when capacitor charge is zero, energy has not disappeared. It is stored in the inductor's magnetic field." />
-          <ModelAssumptionsCard assumptions={defaultModelAssumptions} />
         </div>
       }
       bottom={
         state.showGraphs ? (
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="space-y-4">
+            <div className="grid gap-4 xl:grid-cols-2">
+            <div>
             <GraphPanel title="Charge vs Time">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={graphData} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
@@ -464,7 +433,10 @@ export function LCOscillatorLab() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
+            <GraphMathCard formula="Q(t)=Qmax cos(ωt)" derivative="dQ/dt = I(t) = -ωQmax sin(ωt)" derivativeMeaning="Charge slope equals current, linking this graph directly to the I-t graph." integral="∫Q dt = (Qmax/ω)sin(ωt)+C" integralMeaning="Area under Q-t captures accumulated charge-time, useful for phase comparisons." />
+            </div>
 
+            <div>
             <GraphPanel title="Current vs Time">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={graphData} margin={{ top: 8, right: 12, left: 8, bottom: 10 }}>
@@ -498,6 +470,8 @@ export function LCOscillatorLab() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
+            <GraphMathCard formula="I(t)=-ωQmax sin(ωt)" derivative="dI/dt = -(ω^2)Qmax cos(ωt)" derivativeMeaning="Current slope is tied to restoring voltage/charge in the LC system." integral="∫I dt = Q + C" integralMeaning="Area under I-t gives net moved charge and reconstructs capacitor charge change." />
+            </div>
 
             <div className="xl:col-span-2">
               <GraphPanel title="Energy vs Time">
@@ -534,6 +508,17 @@ export function LCOscillatorLab() {
                   </LineChart>
                 </ResponsiveContainer>
               </GraphPanel>
+              <GraphMathCard formula="UC=Q^2/(2C), UL=0.5LI^2, Utotal=UC+UL" derivative="dUC/dt = (Q/C)I, dUL/dt = LI·dI/dt" derivativeMeaning="Energy slopes show exchange rate between electric and magnetic storage." integral="∫U dt" integralMeaning="Area is energy held over time; compare UC and UL residence over each cycle." />
+            </div>
+            </div>
+            <div className="grid gap-3 xl:grid-cols-2">
+              <FormulaCard title="LC Frequency" equation={String.raw`\omega = \frac{1}{\sqrt{LC}},\quad T = 2\pi\sqrt{LC}`} definitions={[{ symbol: String.raw`\omega`, meaning: "angular frequency", unit: "rad/s" }, { symbol: String.raw`T`, meaning: "period", unit: "s" }]} physicalMeaning="Larger L or C gives a slower oscillation and longer period." />
+              <FormulaCard title="Charge and Current" equation={String.raw`Q(t)=Q_{\max}\cos(\omega t),\quad I(t)=-\omega Q_{\max}\sin(\omega t)`} definitions={[{ symbol: String.raw`Q_{\max}`, meaning: "initial charge amplitude", unit: "C" }, { symbol: String.raw`I`, meaning: "circuit current", unit: "A" }]} physicalMeaning="Charge and current oscillate sinusoidally and are out of phase by 90°." />
+              <FormulaCard title="Energy Exchange" equation={String.raw`U_C=\frac{Q^2}{2C},\quad U_L=\frac{1}{2}LI^2`} definitions={[{ symbol: String.raw`U_C`, meaning: "capacitor electric energy", unit: "J" }, { symbol: String.raw`U_L`, meaning: "inductor magnetic energy", unit: "J" }]} physicalMeaning="Energy transfers between capacitor and inductor while ideal total energy remains constant." />
+              <WhatChangedCard text={whatChanged} />
+              <RelationshipSummaryCard summary={relationshipSummary} constants={[{ label: "L", value: `${formatNumber(state.L, 2)} H` }, { label: "C", value: `${formatNumber(state.C, 3)} F` }, { label: "ω", value: `${formatNumber(omega, 3)} rad/s` }, { label: "T", value: `${formatNumber(period, 3)} s` }]} />
+              <CommonMistakeCard text="Common mistake: when capacitor charge is zero, energy has not disappeared. It is stored in the inductor's magnetic field." />
+              <ModelAssumptionsCard assumptions={defaultModelAssumptions} />
             </div>
           </div>
         ) : null

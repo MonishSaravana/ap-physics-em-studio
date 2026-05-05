@@ -12,9 +12,11 @@ import {
   YAxis,
 } from "recharts";
 import { CEDAlignmentCard } from "@/components/simulations/CEDAlignmentCard";
+import { CollapsibleSection } from "@/components/simulations/CollapsibleSection";
 import { CommonMistakeCard } from "@/components/simulations/CommonMistakeCard";
 import { FormulaCard } from "@/components/simulations/FormulaCard";
 import { GraphPanel } from "@/components/simulations/GraphPanel";
+import { GraphMathCard } from "@/components/simulations/GraphMathCard";
 import { LiveValueCard } from "@/components/simulations/LiveValueCard";
 import { ModelAssumptionsCard } from "@/components/simulations/ModelAssumptionsCard";
 import { RelationshipSummaryCard } from "@/components/simulations/RelationshipSummaryCard";
@@ -302,6 +304,19 @@ export function FaradayLenzSimulator() {
               {derived.status}
             </p>
           </div>
+          <label className="flex items-center gap-3 rounded-xl border border-slate-700/70 bg-slate-900/55 px-3 py-2 text-xs text-slate-200">
+            <span>Animation Speed</span>
+            <input
+              type="range"
+              min={0.05}
+              max={3}
+              step={0.05}
+              value={state.animationSpeed}
+              onChange={(event) => update("animationSpeed", Number(event.target.value))}
+              className="w-40 accent-cyan-400"
+            />
+            <span className="min-w-10 text-right text-cyan-200">{formatNumber(state.animationSpeed, 2)}×</span>
+          </label>
 
           <svg viewBox="0 0 600 330" className="h-[320px] w-full rounded-xl bg-slate-950/75">
             <defs>
@@ -454,119 +469,23 @@ export function FaradayLenzSimulator() {
           </div>
 
           <div className="space-y-3 rounded-2xl border border-slate-700/70 bg-slate-900/60 p-3">
-            <SliderControl
-              id="faraday-b"
-              label="Magnetic Field B"
-              value={state.B}
-              min={0}
-              max={5}
-              step={0.05}
-              unit="T"
-              onChange={(value) => update("B", value)}
-            />
-            <SliderControl
-              id="faraday-v"
-              label="Loop Velocity v"
-              value={state.v}
-              min={-5}
-              max={5}
-              step={0.05}
-              unit="m/s"
-              onChange={(value) => update("v", value)}
-            />
-            <SliderControl
-              id="faraday-loop-width"
-              label="Loop Width"
-              value={state.loopWidth}
-              min={0.2}
-              max={3}
-              step={0.05}
-              unit="m"
-              onChange={(value) => update("loopWidth", value)}
-            />
-            <SliderControl
-              id="faraday-loop-height"
-              label="Loop Height"
-              value={state.loopHeight}
-              min={0.2}
-              max={3}
-              step={0.05}
-              unit="m"
-              onChange={(value) => update("loopHeight", value)}
-            />
-            <SliderControl
-              id="faraday-n"
-              label="Turns N"
-              value={state.N}
-              min={1}
-              max={100}
-              step={1}
-              digits={0}
-              unit="turns"
-              onChange={(value) => update("N", value)}
-            />
-            <SliderControl
-              id="faraday-region"
-              label="Field Region Width"
-              value={state.fieldRegionWidth}
-              min={1}
-              max={8}
-              step={0.1}
-              unit="m"
-              onChange={(value) => update("fieldRegionWidth", value)}
-            />
-            <SliderControl
-              id="faraday-speed"
-              label="Animation Speed"
-              value={state.animationSpeed}
-              min={0.2}
-              max={3}
-              step={0.1}
-              unit="×"
-              onChange={(value) => update("animationSpeed", value)}
-            />
-
-            <label className="flex items-center justify-between gap-2 rounded-xl border border-slate-700/70 bg-slate-900/55 px-3 py-2 text-sm text-slate-200">
-              <span>Field Direction</span>
-              <select
-                aria-label="Field direction"
-                value={state.fieldDirection}
-                onChange={(event) => update("fieldDirection", event.target.value as Direction)}
-                className="rounded-lg border border-slate-600 bg-slate-950 px-2 py-1 text-xs"
-              >
-                <option value="into">Into Page (×)</option>
-                <option value="out">Out of Page (•)</option>
-              </select>
-            </label>
-
-            <div className="grid gap-2">
-              <ToggleControl
-                id="faraday-current"
-                label="Show Induced Current Arrows"
-                checked={state.showCurrentArrows}
-                onChange={(checked) => update("showCurrentArrows", checked)}
-              />
-              <ToggleControl
-                id="faraday-induced-field"
-                label="Show Induced Field"
-                checked={state.showInducedField}
-                onChange={(checked) => update("showInducedField", checked)}
-              />
-              <ToggleControl
-                id="faraday-show-flux"
-                label="Show Flux Graph"
-                checked={state.showFluxGraph}
-                onChange={(checked) => update("showFluxGraph", checked)}
-              />
-              <ToggleControl
-                id="faraday-show-emf"
-                label="Show emf Graph"
-                checked={state.showEmfGraph}
-                onChange={(checked) => update("showEmfGraph", checked)}
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
+            <CollapsibleSection title="Field + Geometry" defaultOpen>
+              <SliderControl id="faraday-b" label="Magnetic Field B" value={state.B} min={0} max={5} step={0.05} unit="T" onChange={(value) => update("B", value)} />
+              <SliderControl id="faraday-v" label="Loop Velocity v" value={state.v} min={-5} max={5} step={0.05} unit="m/s" onChange={(value) => update("v", value)} />
+              <SliderControl id="faraday-loop-width" label="Loop Width" value={state.loopWidth} min={0.2} max={3} step={0.05} unit="m" onChange={(value) => update("loopWidth", value)} />
+              <SliderControl id="faraday-loop-height" label="Loop Height" value={state.loopHeight} min={0.2} max={3} step={0.05} unit="m" onChange={(value) => update("loopHeight", value)} />
+              <SliderControl id="faraday-n" label="Turns N" value={state.N} min={1} max={100} step={1} digits={0} unit="turns" onChange={(value) => update("N", value)} />
+              <SliderControl id="faraday-region" label="Field Region Width" value={state.fieldRegionWidth} min={1} max={8} step={0.1} unit="m" onChange={(value) => update("fieldRegionWidth", value)} />
+              <label className="flex items-center justify-between gap-2 rounded-xl border border-slate-700/70 bg-slate-900/55 px-3 py-2 text-sm text-slate-200">
+                <span>Field Direction</span>
+                <select aria-label="Field direction" value={state.fieldDirection} onChange={(event) => update("fieldDirection", event.target.value as Direction)} className="rounded-lg border border-slate-600 bg-slate-950 px-2 py-1 text-xs">
+                  <option value="into">Into Page (×)</option>
+                  <option value="out">Out of Page (•)</option>
+                </select>
+              </label>
+            </CollapsibleSection>
+            <CollapsibleSection title="Time + Playback" defaultOpen>
+              <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => update("playing", !state.playing)}
@@ -591,49 +510,24 @@ export function FaradayLenzSimulator() {
                 Clear Graph
               </button>
             </div>
+            </CollapsibleSection>
+            <CollapsibleSection title="Display Options">
+              <div className="grid gap-2">
+                <ToggleControl id="faraday-current" label="Show Induced Current Arrows" checked={state.showCurrentArrows} onChange={(checked) => update("showCurrentArrows", checked)} />
+                <ToggleControl id="faraday-induced-field" label="Show Induced Field" checked={state.showInducedField} onChange={(checked) => update("showInducedField", checked)} />
+                <ToggleControl id="faraday-show-flux" label="Show Flux Graph" checked={state.showFluxGraph} onChange={(checked) => update("showFluxGraph", checked)} />
+                <ToggleControl id="faraday-show-emf" label="Show emf Graph" checked={state.showEmfGraph} onChange={(checked) => update("showEmfGraph", checked)} />
+              </div>
+            </CollapsibleSection>
           </div>
 
-          <FormulaCard
-            title="Faraday's Law"
-            equation={String.raw`\mathcal{E} = -N\frac{d\Phi_B}{dt}`}
-            definitions={[
-              { symbol: String.raw`\mathcal{E}`, meaning: "induced emf", unit: "V" },
-              { symbol: String.raw`N`, meaning: "number of turns", unit: "turns" },
-              { symbol: String.raw`\Phi_B`, meaning: "magnetic flux", unit: "Wb" },
-            ]}
-            physicalMeaning="An emf is induced only when magnetic flux changes with time."
-          />
-
-          <FormulaCard
-            title="Uniform Region Flux"
-            equation={String.raw`\Phi_B = BA_{\text{inside}},\quad |\mathcal{E}| = NB\frac{dA_{\text{inside}}}{dt}`}
-            definitions={[
-              {
-                symbol: String.raw`A_{\text{inside}}`,
-                meaning: "loop area currently in the field region",
-                unit: "m²",
-              },
-            ]}
-            physicalMeaning="As the loop enters or exits the field region, changing overlap area causes changing flux and induced emf."
-          />
-
-          <WhatChangedCard text={whatChanged} />
-          <RelationshipSummaryCard
-            summary={relationshipSummary}
-            constants={[
-              { label: "B", value: `${formatNumber(state.B)} T` },
-              { label: "N", value: `${formatNumber(state.N, 0)}` },
-              { label: "v", value: `${formatNumber(state.v)} m/s` },
-              { label: "Region", value: `${formatNumber(state.fieldRegionWidth)} m` },
-            ]}
-          />
-          <CommonMistakeCard text="Common mistake: a strong magnetic field does not automatically create induced current. Magnetic flux must be changing." />
-          <ModelAssumptionsCard assumptions={defaultModelAssumptions} />
         </div>
       }
       bottom={
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="space-y-4">
+          <div className="grid gap-4 xl:grid-cols-2">
           {state.showFluxGraph ? (
+            <div>
             <GraphPanel title="Magnetic Flux vs Time">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={history} margin={{ top: 8, right: 12, left: 10, bottom: 10 }}>
@@ -676,9 +570,12 @@ export function FaradayLenzSimulator() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
+            <GraphMathCard formula="ΦB(t)=B·Ainside(t)" derivative="dΦB/dt" derivativeMeaning="This slope tells how fast flux is changing and directly drives induction." integral="∫ΦB dt" integralMeaning="Area under flux-time is total signed flux accumulated over time." />
+            </div>
           ) : null}
 
           {state.showEmfGraph ? (
+            <div>
             <GraphPanel title="Induced emf vs Time">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={history} margin={{ top: 8, right: 12, left: 10, bottom: 10 }}>
@@ -721,7 +618,18 @@ export function FaradayLenzSimulator() {
                 </LineChart>
               </ResponsiveContainer>
             </GraphPanel>
+            <GraphMathCard formula="ℰ(t) = -N dΦB/dt" derivative="dℰ/dt" derivativeMeaning="This indicates how sharply induced emf itself is changing." integral="∫ℰ dt = -NΔΦB" integralMeaning="Area under emf-time gives net flux-linkage change." />
+            </div>
           ) : null}
+          </div>
+          <div className="grid gap-3 xl:grid-cols-2">
+            <FormulaCard title="Faraday's Law" equation={String.raw`\mathcal{E} = -N\frac{d\Phi_B}{dt}`} definitions={[{ symbol: String.raw`\mathcal{E}`, meaning: "induced emf", unit: "V" }, { symbol: String.raw`N`, meaning: "number of turns", unit: "turns" }, { symbol: String.raw`\Phi_B`, meaning: "magnetic flux", unit: "Wb" }]} physicalMeaning="An emf is induced only when magnetic flux changes with time." />
+            <FormulaCard title="Uniform Region Flux" equation={String.raw`\Phi_B = BA_{\text{inside}},\quad |\mathcal{E}| = NB\frac{dA_{\text{inside}}}{dt}`} definitions={[{ symbol: String.raw`A_{\text{inside}}`, meaning: "loop area currently in the field region", unit: "m²" }]} physicalMeaning="As the loop enters or exits the field region, changing overlap area causes changing flux and induced emf." />
+            <WhatChangedCard text={whatChanged} />
+            <RelationshipSummaryCard summary={relationshipSummary} constants={[{ label: "B", value: `${formatNumber(state.B)} T` }, { label: "N", value: `${formatNumber(state.N, 0)}` }, { label: "v", value: `${formatNumber(state.v)} m/s` }, { label: "Region", value: `${formatNumber(state.fieldRegionWidth)} m` }]} />
+            <CommonMistakeCard text="Common mistake: a strong magnetic field does not automatically create induced current. Magnetic flux must be changing." />
+            <ModelAssumptionsCard assumptions={defaultModelAssumptions} />
+          </div>
         </div>
       }
     />
