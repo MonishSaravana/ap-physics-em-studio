@@ -117,11 +117,11 @@ export function InductanceVisualizer() {
               </marker>
             </defs>
 
-            <line x1="60" y1="160" x2="120" y2="160" stroke="#e2e8f0" strokeWidth="3" />
-            <line x1="480" y1="160" x2="540" y2="160" stroke="#e2e8f0" strokeWidth="3" />
+            <line x1="70" y1="160" x2="130" y2="160" stroke="#e2e8f0" strokeWidth="3" />
+            <line x1="470" y1="160" x2="530" y2="160" stroke="#e2e8f0" strokeWidth="3" />
 
             {Array.from({ length: coilTurns }, (_, index) => {
-              const x = 120 + (index * 360) / coilTurns;
+              const x = 130 + (index * 340) / coilTurns;
               return (
                 <path
                   key={`coil-${index}`}
@@ -139,9 +139,9 @@ export function InductanceVisualizer() {
                   return (
                     <line
                       key={`field-${index}`}
-                      x1="145"
+                      x1="150"
                       y1={y}
-                      x2="455"
+                      x2="450"
                       y2={y}
                       stroke="#38bdf8"
                       strokeWidth={1 + fieldStrength * 2.5}
@@ -152,43 +152,43 @@ export function InductanceVisualizer() {
               : null}
 
             <line
-              x1="90"
-              y1="135"
-              x2={state.I >= 0 ? 170 : 40}
-              y2="135"
+              x1="95"
+              y1="138"
+              x2={state.I >= 0 ? 165 : 45}
+              y2="138"
               stroke="#f8fafc"
               strokeWidth="2"
               markerEnd="url(#inductor-arrow)"
             />
-            <text x="76" y="124" fill="#f8fafc" fontSize={13}>
+            <text x="76" y="126" fill="#f8fafc" fontSize={13}>
               I = {formatNumber(state.I, 2)} A
             </text>
 
             {state.showInducedDirection && hasInducedDirection ? (
               <>
                 <line
-                  x1="510"
-                  y1="195"
-                  x2={state.dIdt > 0 ? 440 : 560}
-                  y2="195"
+                  x1="500"
+                  y1="214"
+                  x2={state.dIdt > 0 ? 430 : 550}
+                  y2="214"
                   stroke="#f472b6"
                   strokeWidth="2.2"
                   markerEnd="url(#inductor-arrow)"
                 />
-                <text x="390" y="205" fill="#f9a8d4" fontSize={13}>
+                <text x="490" y="235" textAnchor="middle" fill="#f9a8d4" fontSize={13}>
                   Induced emf direction opposes dI/dt
                 </text>
               </>
             ) : state.showInducedDirection ? (
-              <text x="386" y="205" fill="#cbd5e1" fontSize={13}>
+              <text x="490" y="235" textAnchor="middle" fill="#cbd5e1" fontSize={13}>
                 dI/dt = 0, so induced emf is zero
               </text>
             ) : null}
 
-            <text x="34" y="33" fill="#cbd5e1" fontSize={13}>
+            <text x="300" y="33" textAnchor="middle" fill="#cbd5e1" fontSize={13}>
               Solenoid model: L = μN²A/ℓ
             </text>
-            <text x="34" y="287" fill="#7dd3fc" fontSize={13}>
+            <text x="300" y="287" textAnchor="middle" fill="#7dd3fc" fontSize={13}>
               {state.showGeometryCalculation
                 ? `Using geometry-derived L = ${formatNumber(geometryL, 4)} H`
                 : `Using manual L slider = ${formatNumber(state.L, 3)} H`}

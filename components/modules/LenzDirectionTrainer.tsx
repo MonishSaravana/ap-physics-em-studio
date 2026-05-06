@@ -210,9 +210,6 @@ export function LenzDirectionTrainer() {
             <p className="inline-flex items-center gap-1.5">
               Lenz&apos;s law <Tooltip text="The induced current opposes the change in magnetic flux, not necessarily the original magnetic field." />
             </p>
-            <p className="rounded-full border border-slate-600 bg-slate-800/70 px-3 py-1 text-slate-100">
-              {scenario.context}
-            </p>
           </div>
 
           <svg viewBox="0 0 600 330" className="h-[320px] w-full rounded-xl bg-slate-950/75">
@@ -305,6 +302,11 @@ export function LenzDirectionTrainer() {
               </text>
             ) : null}
           </svg>
+
+          <div className="rounded-xl border border-slate-700/60 bg-slate-900/50 p-3 text-sm">
+            <p className="text-xs uppercase tracking-wide text-slate-400">Scenario</p>
+            <p className="mt-1 text-slate-100">{scenario.context}</p>
+          </div>
 
           <div className="rounded-xl border border-slate-700/60 bg-slate-900/50 p-3 text-sm">
             <p className="text-slate-100">Answer status: {answer ? (isCorrect ? "Correct" : "Try again") : "Not answered"}</p>
