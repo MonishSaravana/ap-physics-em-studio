@@ -61,6 +61,7 @@ const defaults: LRState = {
   showLabels: true,
   showVoltageSplit: true,
 };
+const BASE_ANIMATION_RATE = 0.5;
 
 export function LRCircuitLab() {
   const [state, setState] = useState<LRState>(defaults);
@@ -84,7 +85,7 @@ export function LRCircuitLab() {
         last = timestamp;
       }
 
-      const dt = ((timestamp - last) / 1000) * state.animationSpeed;
+      const dt = ((timestamp - last) / 1000) * state.animationSpeed * BASE_ANIMATION_RATE;
       last = timestamp;
 
       setTime((previous) => {

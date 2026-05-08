@@ -74,6 +74,7 @@ const defaults: FaradayState = {
   showFluxGraph: true,
   showEmfGraph: true,
 };
+const BASE_ANIMATION_RATE = 0.5;
 
 const graphWindowSeconds = 14;
 const epsilon = 1e-5;
@@ -200,7 +201,7 @@ export function FaradayLenzSimulator() {
 
       const elapsed = (timestamp - lastFrameRef.current) / 1000;
       lastFrameRef.current = timestamp;
-      const dt = elapsed * state.animationSpeed;
+      const dt = elapsed * state.animationSpeed * BASE_ANIMATION_RATE;
 
       setTime((prev) => prev + dt);
 

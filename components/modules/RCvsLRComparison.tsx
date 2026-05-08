@@ -52,6 +52,7 @@ const defaults: RCvsLRState = {
   playing: true,
   showBehaviorTable: true,
 };
+const BASE_ANIMATION_RATE = 0.5;
 
 export function RCvsLRComparison() {
   const [state, setState] = useState<RCvsLRState>(defaults);
@@ -76,7 +77,7 @@ export function RCvsLRComparison() {
         last = timestamp;
       }
 
-      const dt = ((timestamp - last) / 1000) * state.animationSpeed;
+      const dt = ((timestamp - last) / 1000) * state.animationSpeed * BASE_ANIMATION_RATE;
       last = timestamp;
 
       setTime((previous) => {

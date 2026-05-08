@@ -54,6 +54,7 @@ const defaults: LCState = {
   showPhaseMarkers: true,
   showGraphs: true,
 };
+const BASE_ANIMATION_RATE = 0.5;
 
 export function LCOscillatorLab() {
   const [state, setState] = useState<LCState>(defaults);
@@ -77,7 +78,7 @@ export function LCOscillatorLab() {
         last = timestamp;
       }
 
-      const dt = ((timestamp - last) / 1000) * state.animationSpeed;
+      const dt = ((timestamp - last) / 1000) * state.animationSpeed * BASE_ANIMATION_RATE;
       last = timestamp;
       setTime((previous) => previous + dt);
 
